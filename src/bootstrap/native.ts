@@ -2,6 +2,7 @@ import { authorize, refresh } from 'react-native-app-auth';
 import { fetch as expoFetch } from 'expo/fetch';
 import type { Authenticator } from '@/domeinen/auth';
 import { createAzureAdAuthenticator } from '@/domeinen/auth/ui';
+import { createAverageImageColorSampler } from '@/domeinen/capture/ui';
 import { createRnLogShare } from '@/domeinen/support/ui';
 import { createDeviceKeyValueStore } from '@/shared/platform/rn/key-value-store';
 import { createExpoHaptics } from '@/shared/platform/rn/expo-haptics';
@@ -41,6 +42,10 @@ export function createNativeContainer(): Container {
     language: detectLanguage(),
     deviceAuthenticator: buildDeviceAuthenticator(config),
     logShare: createRnLogShare(),
+    // UI loads the custom TFLite category model via CategoryModelProvider.
+    // Container still requires a classifier for the type and for tests.
+    imageClassifier: { label: async () => [] },
+    imageColorSampler: createAverageImageColorSampler(),
     haptics: createExpoHaptics(),
     logSink: consoleSink,
     fetch: expoFetch,

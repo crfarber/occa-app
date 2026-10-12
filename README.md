@@ -1,6 +1,11 @@
-# Expo Boilerplate
+# Occa
 
-Herbruikbare starter voor een React Native-app met Expo: inloggen en sessiebeheer, een gelaagde domeinstructuur met een architectuurtest, getypeerde i18n (NL/EN), een gevalideerde configuratie per omgeving, en tooling (oxlint, Prettier, Vitest, Husky, CI). Het is de mobiele tegenhanger van de web-boilerplate: dezelfde ideeën, dezelfde mapnamen.
+Mobiele app voor vintage kledingwinkels: scannen, on-device herkenning en lokale productdrafts.
+Gebouwd op Expo (SDK 57) met een gelaagde domeinstructuur, getypeerde i18n (NL/EN), demo- of
+Azure AD-login, en tooling (oxlint, Prettier, Vitest, Husky, CI).
+
+Productbeschrijving: [docs/occa-brief.md](docs/occa-brief.md). Van scratch opzetten:
+[docs/handleiding-starten.md](docs/handleiding-starten.md).
 
 ## Tech stack
 
@@ -14,9 +19,12 @@ Herbruikbare starter voor een React Native-app met Expo: inloggen en sessiebehee
 
 Vereisten: Node ≥ 22.13, pnpm 11 (`corepack enable`), Xcode en/of Android Studio.
 
+**Uitgebreide handleiding** (van scratch: Node/pnpm, Xcode, eerste build, ML-model trainen met
+dataset-URL’s): [docs/handleiding-starten.md](docs/handleiding-starten.md).
+
 ```bash
 pnpm install
-cp .env.example .env.local     # werkt direct: demo-login, voorbeeld-API-URL
+# Maak .env.local (demo-login); zie handleiding-starten.md §3 als .env.example ontbreekt
 pnpm ios                       # of: pnpm android (bouwt de native app en start Metro)
 pnpm start                     # daarna alleen Metro starten (dev client)
 ```
@@ -58,6 +66,8 @@ Zie [.env.example](.env.example). `EXPO_PUBLIC_*` wordt in de app gebakken en is
 | `pnpm format` / `pnpm lint:fix` | automatisch herstellen                                      |
 | `pnpm prebuild`                 | native projecten opnieuw genereren (`ios/` en `android/`)   |
 | `pnpm run doctor`               | Expo-configuratie controleren                               |
+| `pnpm training`                 | Dataset-zip downloaden, TFLite trainen, sync naar `assets/models/` |
+| `pnpm training -- <zip-url>`    | Zelfde met een eigen dataset-URL                            |
 
 Een wijziging is **klaar** als `pnpm run ci` slaagt en de app bundelt (`pnpm exec expo export --platform android`, draait ook in CI).
 
@@ -87,8 +97,10 @@ Elk domein (`src/domeinen/<naam>/`) heeft dezelfde lagen:
 
 ## Documentatie
 
+- [docs/handleiding-starten.md](docs/handleiding-starten.md): installeren, iOS-build, categoriemodel trainen
 - [docs/conventions.md](docs/conventions.md): hoe we hier code schrijven
 - [docs/architecture.md](docs/architecture.md): lagen, datastromen, sessiebeheer, wat bewust niet in de boilerplate zit
 - [docs/decisions/](docs/decisions/): waarom we voor deze aanpak kozen
 - [docs/functioneel/open-vragen.md](docs/functioneel/open-vragen.md): open vragen met de aanname die we maken
+- [docs/wiki/](docs/wiki/): Occa-onderwerpen (scannen, model, listings, …)
 - [CLAUDE.md](CLAUDE.md): werkafspraken voor AI-assistenten

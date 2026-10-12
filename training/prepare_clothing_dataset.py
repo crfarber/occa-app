@@ -15,6 +15,7 @@ Alleen standaardbibliotheek, geen extra packages nodig.
 
 Voorbeelden:
     python prepare_clothing_dataset.py
+    python prepare_clothing_dataset.py --url https://example.com/set.zip --force
     python prepare_clothing_dataset.py --out data --min-count 100
     python prepare_clothing_dataset.py --classes T-Shirt Pants Shoes Dress Hoodie
     python prepare_clothing_dataset.py --source ./clothing-dataset   (al gedownload)
@@ -31,23 +32,30 @@ import zipfile
 from collections import defaultdict
 from pathlib import Path
 
-ZIP_URL = "https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip"
+DEFAULT_ZIP_URL = (
+    "https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip"
+)
 
 # Labels die geen echte kledingcategorie zijn
 SKIP_LABELS = {"Not sure", "Other", "Skip"}
 
 
-def download(dest: Path) -> Path:
+def download(dest: Path, url: str, force: bool = False) -> Path:
     """Download en pak de dataset uit; geeft de map met images.csv terug."""
     dest.mkdir(parents=True, exist_ok=True)
     existing = next(dest.glob("*/images.csv"), None)
-    if existing:
+    if existing and not force:
         print(f"Dataset al aanwezig in {existing.parent}, download overgeslagen.")
         return existing.parent
 
-    print(f"Downloaden van {ZIP_URL} (~320 MB)...")
+    if force and dest.exists():
+        print(f"Cache legen ({dest}) …")
+        shutil.rmtree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+    print(f"Downloaden van {url} …")
     buf = io.BytesIO()
-    with urllib.request.urlopen(ZIP_URL) as resp:
+    with urllib.request.urlopen(url) as resp:
         total = int(resp.headers.get("Content-Length") or 0)
         done = 0
         while chunk := resp.read(1 << 20):
@@ -59,7 +67,17 @@ def download(dest: Path) -> Path:
     print("\nUitpakken...")
     with zipfile.ZipFile(buf) as zf:
         zf.extractall(dest)
-    return next(dest.glob("*/images.csv")).parent
+    found = next(dest.glob("*/images.csv"), None)
+    if found is None:
+        # Zip zonder geneste map (images.csv in root van extract)
+        found = next(dest.glob("images.csv"), None)
+        if found is None:
+            sys.exit(
+                "Geen images.csv in de zip. Verwacht de Grigorev-layout "
+                "(map met images.csv + images/)."
+            )
+        return found.parent
+    return found.parent
 
 
 def load_rows(src: Path, include_kids: bool):
@@ -94,6 +112,16 @@ def main():
     p.add_argument("--out", default="clothing_data", help="outputmap (default: clothing_data)")
     p.add_argument("--source", help="map met al gedownloade dataset (bevat images.csv)")
     p.add_argument("--cache", default=".clothing_cache", help="downloadmap (default: .clothing_cache)")
+    p.add_argument(
+        "--url",
+        default=DEFAULT_ZIP_URL,
+        help="Zip-URL om te downloaden (default: Grigorev clothing-dataset)",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="Cache legen en opnieuw downloaden",
+    )
     p.add_argument("--classes", nargs="*", help="alleen deze klassen gebruiken")
     p.add_argument("--min-count", type=int, default=50, help="klassen met minder foto's overslaan (default: 50)")
     p.add_argument("--split", nargs=3, type=float, default=[0.7, 0.15, 0.15], metavar=("TRAIN", "VAL", "TEST"))
@@ -104,7 +132,11 @@ def main():
     if abs(sum(args.split) - 1) > 1e-6:
         sys.exit("--split moet optellen tot 1.0")
 
-    src = Path(args.source) if args.source else download(Path(args.cache))
+    src = (
+        Path(args.source)
+        if args.source
+        else download(Path(args.cache), url=args.url, force=args.force)
+    )
     rows = load_rows(src, args.include_kids)
 
     by_label = defaultdict(list)

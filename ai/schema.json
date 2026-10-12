@@ -1,0 +1,119 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "top",
+        "overhemd_blouse",
+        "trui_vest",
+        "jas",
+        "broek",
+        "rok",
+        "jurk",
+        "pak",
+        "schoenen",
+        "tas",
+        "accessoire",
+        "overig"
+      ],
+      "description": "Hoofdcategorie, afgeleid uit de foto's."
+    },
+    "subtype": {
+      "type": "string",
+      "description": "Specifiek type, bijv. 'denim jack', 'leren loafer', 'zijden sjaal'."
+    },
+    "colors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hoofdkleur eerst, daarna eventuele bijkleuren. Nederlandse kleurnamen."
+    },
+    "pattern": {
+      "type": "string",
+      "enum": ["effen", "gestreept", "geruit", "bloemen", "print", "dessin", "anders"]
+    },
+    "brand": {
+      "type": ["string", "null"],
+      "description": "Alleen als het merk zichtbaar is op label, logo of product. Anders null."
+    },
+    "size_label": {
+      "type": ["string", "null"],
+      "description": "Maat zoals op het label staat, letterlijk. Anders null."
+    },
+    "material": {
+      "type": ["string", "null"],
+      "description": "Materiaal van het waslabel, bijv. '100% katoen'. Alleen schatten als het duidelijk zichtbaar is; dan in uncertain_fields zetten."
+    },
+    "era_estimate": {
+      "type": ["string", "null"],
+      "description": "Geschatte periode, bijv. 'jaren 80'. Null als er geen aanwijzingen zijn."
+    },
+    "condition": {
+      "type": "string",
+      "enum": ["nieuw_met_label", "zeer_goed", "goed", "gebruikt", "beschadigd"]
+    },
+    "condition_notes": {
+      "type": ["string", "null"],
+      "description": "Zichtbare gebreken: vlekken, gaatjes, slijtage, verkleuring. Null als er niets te zien is."
+    },
+    "title": {
+      "type": "string",
+      "description": "Korte producttitel voor de webshop, max. 70 tekens."
+    },
+    "description": {
+      "type": "string",
+      "description": "Verkooptekst van 2-4 zinnen in de toon van de winkel. Eerlijk over gebreken en ontbrekende info."
+    },
+    "uncertain_fields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "category",
+          "subtype",
+          "colors",
+          "pattern",
+          "brand",
+          "size_label",
+          "material",
+          "era_estimate",
+          "condition"
+        ]
+      },
+      "description": "Velden die de medewerker moet controleren."
+    },
+    "photo_roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "overzicht_voor",
+          "overzicht_achter",
+          "label",
+          "waslabel",
+          "detail",
+          "gebrek",
+          "onbruikbaar"
+        ]
+      },
+      "description": "Rol per foto, in dezelfde volgorde als aangeleverd."
+    }
+  },
+  "required": [
+    "category",
+    "subtype",
+    "colors",
+    "pattern",
+    "brand",
+    "size_label",
+    "material",
+    "era_estimate",
+    "condition",
+    "condition_notes",
+    "title",
+    "description",
+    "uncertain_fields",
+    "photo_roles"
+  ]
+}

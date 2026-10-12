@@ -46,7 +46,8 @@ function Navigator() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack initialRouteName="(scan)" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(scan)" />
       <Stack.Protected guard={status === 'signed-in'}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>

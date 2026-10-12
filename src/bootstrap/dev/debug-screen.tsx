@@ -33,7 +33,7 @@ export function DebugScreen() {
 
   useEffect(() => {
     if (!__DEV__) {
-      router.replace('/');
+      router.replace('/home');
     }
   }, []);
 
@@ -67,7 +67,10 @@ export function DebugScreen() {
   const confirmCopyToken = (): void => {
     Alert.alert(t('debug.copyAccessTokenTitle'), t('debug.copyAccessTokenWarning'), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('debug.copyAccessTokenConfirm'), onPress: () => void copyToken() },
+      {
+        text: t('debug.copyAccessTokenConfirm'),
+        onPress: () => void copyToken(),
+      },
     ]);
   };
 

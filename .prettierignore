@@ -1,0 +1,13 @@
+node_modules/
+coverage/
+dist/
+.expo/
+ios/
+android/
+training/.venv/
+training/.clothing_cache/
+training/dataset/
+training/clothing_data/
+training/export/saved_model/
+*.tflite
+pnpm-lock.yaml

@@ -1,6 +1,6 @@
 # Werkafspraken voor AI-assistenten
 
-Dit is een Expo-app gebouwd op de Expo-boilerplate van het team. Lees eerst [docs/conventions.md](docs/conventions.md) en [docs/architecture.md](docs/architecture.md). Praat en schrijf documentatie in het Nederlands; code, commentaar en identifiers zijn Engels.
+Dit is **Occa**, een Expo-app (team-boilerplate als basis). Lees eerst [docs/conventions.md](docs/conventions.md), [docs/architecture.md](docs/architecture.md) en [docs/occa-brief.md](docs/occa-brief.md). Praat en schrijf documentatie in het Nederlands; code, commentaar en identifiers zijn Engels.
 
 ## Voordat je code schrijft
 

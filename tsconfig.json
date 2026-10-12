@@ -15,5 +15,12 @@
       "@/assets/*": ["./assets/*"]
     }
   },
-  "include": ["src", "vitest.config.mts", "app.config.ts", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": [
+    "src",
+    "assets",
+    "vitest.config.mts",
+    "app.config.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

@@ -1,5 +1,5 @@
 """
-Relabel - categoriemodel trainen voor op de telefoon.
+Occa - categoriemodel trainen voor op de telefoon.
 
 Mapstructuur van je foto's (mapnaam = categorie):
 
@@ -16,7 +16,7 @@ Of met eigen winkelfoto's (mapnamen = categories.json ids):
     python train.py --data ./dataset --out ./export
 
 Resultaat in --out:
-    relabel_category.tflite   model voor ML Kit (standaard int8/uint8; --quantize float16 optioneel)
+    occa_category.tflite   model voor ML Kit (standaard int8/uint8; --quantize float16 optioneel)
     labels.json               index -> categorie, zelfde volgorde als de modeloutput
     report.txt                nauwkeurigheid per categorie op de validatieset
 
@@ -198,7 +198,7 @@ def export_tflite(model, train_ds, out_dir, quantize="int8"):
         conv.target_spec.supported_types = [tf.float16]
 
     tflite_bytes = conv.convert()
-    path = os.path.join(out_dir, "relabel_category.tflite")
+    path = os.path.join(out_dir, "occa_category.tflite")
     pathlib.Path(path).write_bytes(tflite_bytes)
     return path
 

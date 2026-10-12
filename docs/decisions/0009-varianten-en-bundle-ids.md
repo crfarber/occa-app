@@ -8,7 +8,7 @@ Eén codebase, drie varianten (`internal`, `acceptance`, `production`) via `APP_
 
 ## Bundle-ID's
 
-Afgeleid van `APP.id` in `app.config.ts`: `<id>` (productie), `<id>.acceptance`, `<id>.internal`. De boilerplate gebruikt `com.example.expoboilerplate`; vervang dat bij de start van een project. Neemt de app een bestaande store-listing over, dan horen de bestaande ID's erin (en een hogere versie).
+Afgeleid van `APP.id` in `app.config.ts`: `<id>` (productie), `<id>.acceptance`, `<id>.internal`. Occa gebruikt `com.crfarber.occa`. Neemt de app een bestaande store-listing over, dan horen de bestaande ID's erin (en een hogere versie).
 
 ## Gevolgen
 

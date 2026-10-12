@@ -13,9 +13,13 @@ export default function AppLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={defaultStackHeaderOptions}>
         <Stack.Screen
-          name="index"
-          options={{ title: t('home.title'), headerRight: () => <SettingsHeaderButton /> }}
+          name="home"
+          options={{
+            title: t('home.title'),
+            headerRight: () => <SettingsHeaderButton />,
+          }}
         />
+        <Stack.Screen name="item/[id]" options={{ title: t('listing.title') }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
         <Stack.Screen name="language" options={{ title: t('settings.language.title') }} />
         <Stack.Screen name="support" options={{ title: t('support.title') }} />

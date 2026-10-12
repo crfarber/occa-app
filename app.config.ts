@@ -5,11 +5,11 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * plus the images in `assets/images/`). Every variant derives its name, id and scheme from here.
  */
 const APP = {
-  name: 'Expo Boilerplate',
-  slug: 'expo-boilerplate',
+  name: 'Occa',
+  slug: 'occa',
   /** Reverse-DNS base for the iOS bundle identifier and the Android package. */
-  id: 'com.example.expoboilerplate',
-  scheme: 'expo-boilerplate',
+  id: 'com.crfarber.occa',
+  scheme: 'occa',
   version: '1.0.0',
   /** Same as `colors.brand` in the theme, so the native splash and the JS splash match. */
   brandColor: '#1F6FEB',
@@ -64,6 +64,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       bundleIdentifier: id,
       supportsTablet: false,
+      infoPlist: {
+        NSCameraUsageDescription:
+          'De app gebruikt de camera om een foto van kleding te maken voor lokale herkenning.',
+        NSPhotoLibraryUsageDescription:
+          "De app gebruikt foto's uit je bibliotheek om kleding lokaal te herkennen.",
+      },
     },
     android: {
       package: id,
@@ -77,6 +83,23 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       'expo-router',
       'expo-secure-store',
       'expo-sqlite',
+      'expo-dev-client',
+      [
+        'expo-camera',
+        {
+          cameraPermission:
+            'De app gebruikt de camera om een foto van kleding te maken voor lokale herkenning.',
+          microphonePermission: false,
+          recordAudioAndroid: false,
+        },
+      ],
+      [
+        'expo-image-picker',
+        {
+          photosPermission:
+            "De app gebruikt foto's uit je bibliotheek om kleding lokaal te herkennen.",
+        },
+      ],
       // Registers the native URL scheme for the OAuth redirect (docs/decisions/0012).
       ['react-native-app-auth', { redirectUrls: [AUTH_REDIRECT_URL] }],
       // Xcode 27 builds crash on iOS 27 unless the app adopts the UIScene life cycle, which SDK 57

@@ -16,6 +16,12 @@ import {
   type SessionStore,
   type TokenProvider,
 } from '@/domeinen/auth';
+import {
+  createScanStore,
+  type ImageClassifier,
+  type ImageColorSampler,
+  type ScanStore,
+} from '@/domeinen/capture';
 import { createLanguageSettings, type LanguageSettings } from '@/domeinen/settings';
 import { supportLogText, type LogShare, type SupportLog } from '@/domeinen/support';
 import { createHttpClient, type HttpClient } from '@/shared/api/http-client';
@@ -54,6 +60,13 @@ export type ContainerInput = {
   deviceAuthenticator: Authenticator | null;
   /** System share sheet for the redacted support log. */
   logShare: LogShare;
+  /**
+   * On-device image labels. Tests pass a fake. Production UI overrides this with
+   * the custom category TFLite model from `CategoryModelProvider`.
+   */
+  imageClassifier: ImageClassifier;
+  /** Average colour from photo pixels. Built in `native.ts`; tests pass a fake. */
+  imageColorSampler: ImageColorSampler;
   fetch?: typeof fetch;
   clock?: Clock;
   sleep?: Sleep;
@@ -82,6 +95,10 @@ export type Container = {
   /** Shared timer port — used by toasts and the status overlay. */
   scheduler: Scheduler;
   languageSettings: LanguageSettings;
+  imageClassifier: ImageClassifier;
+  imageColorSampler: ImageColorSampler;
+  /** Scans of this session. Cleared on sign-out. */
+  scanStore: ScanStore;
   /**
    * Storage, session UI state and query cache for the __DEV__ debug screen.
    * Does not expose SecretStore on the container — only this snapshot.
@@ -189,6 +206,7 @@ export function createContainer(input: ContainerInput): Container {
 
   const sessionStore = createSessionStore();
   const unbindSessionStore = bindSessionStore(tokenProvider, sessionStore);
+  const scanStore = createScanStore(clock);
 
   const supportLog: SupportLog = {
     text: () => supportLogText(logger.entries(), clock.now()),
@@ -199,6 +217,7 @@ export function createContainer(input: ContainerInput): Container {
   async function clearUserData(): Promise<void> {
     cancelPendingCacheSave();
     queryClient.clear();
+    scanStore.clear();
     await clearQueryCache(input.keyValueStore);
   }
 
@@ -248,6 +267,9 @@ export function createContainer(input: ContainerInput): Container {
     statusOverlay,
     scheduler,
     languageSettings,
+    imageClassifier: input.imageClassifier,
+    imageColorSampler: input.imageColorSampler,
+    scanStore,
 
     loadDebugSnapshot: () =>
       collectDebugSnapshot({

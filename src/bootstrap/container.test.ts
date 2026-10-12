@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import type { Authenticator } from '@/domeinen/auth';
+import type { InterpretLabelsResult } from '@/domeinen/capture';
 import { AuthExpiredError, TokenRefreshError } from '@/shared/api/errors';
 import type { RuntimeConfig } from '@/shared/config/runtime-config';
 import { err, ok } from '@/shared/result';
@@ -164,6 +165,8 @@ function setup(
     deviceAuthenticator:
       config.auth.provider === 'demo' ? null : { ...fake.authenticator, ...options.authenticator },
     logShare: { share: async () => undefined },
+    imageClassifier: { label: async () => [] },
+    imageColorSampler: { sampleColorName: async () => null },
     fetch: backend.fetch,
     clock,
     sleep: recording.sleep,
@@ -262,6 +265,8 @@ describe('signing in', () => {
         language: 'nl',
         deviceAuthenticator: null,
         logShare: { share: async () => undefined },
+        imageClassifier: { label: async () => [] },
+        imageColorSampler: { sampleColorName: async () => null },
       }),
     ).toThrow('No device authenticator for azure-ad sign-in');
   });
@@ -458,6 +463,18 @@ describe('when the session cannot be kept', () => {
     await container.start();
     container.queryClient.setQueryData(['items'], ['data']);
     await container.languageSettings.choose('en');
+    const found: InterpretLabelsResult = {
+      category: { kind: 'known', category: 'top', score: 0.8 },
+      colors: [],
+      pattern: { kind: 'unknown' },
+      subtype: null,
+      labels: [{ text: 'Shirt', confidence: 0.8 }],
+      uncertainFields: ['colors', 'pattern', 'subtype'],
+    };
+    container.scanStore.record({
+      photos: [{ uri: 'file:///shirt.jpg', role: 'overview' }],
+      result: found,
+    });
 
     await container.authService.signOut();
 
@@ -467,6 +484,7 @@ describe('when the session cannot be kept', () => {
     });
     expect(secretStore.dump()).toEqual({});
     expect(container.queryClient.getQueryData(['items'])).toBeUndefined();
+    expect(container.scanStore.store.getState().items).toEqual([]);
     expect(keyValueStore.dump()['settings.language']).toBe('en');
   });
 });

@@ -4,6 +4,11 @@ import { I18nextProvider } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import { AppState } from 'react-native';
 import { AuthProvider } from '@/domeinen/auth/ui';
+import {
+  CaptureProvider,
+  CategoryModelProvider,
+  useCustomCategoryClassifier,
+} from '@/domeinen/capture/ui';
 import { SettingsProvider } from '@/domeinen/settings/ui';
 import { SupportProvider } from '@/domeinen/support/ui';
 import { StatusOverlayProvider } from '@/shared/ui/status-overlay-host';
@@ -25,6 +30,30 @@ function useForegroundRefresh(container: Container): void {
   }, [container]);
 }
 
+/**
+ * Capture wiring that prefers the bundled category TFLite model.
+ * Must sit under `CategoryModelProvider`.
+ */
+function CaptureWithCategoryModel({
+  container,
+  children,
+}: {
+  container: Container;
+  children: ReactNode;
+}) {
+  const imageClassifier = useCustomCategoryClassifier();
+  const capture = useMemo(
+    () => ({
+      imageClassifier,
+      imageColorSampler: container.imageColorSampler,
+      scanStore: container.scanStore,
+    }),
+    [container, imageClassifier],
+  );
+
+  return <CaptureProvider value={capture}>{children}</CaptureProvider>;
+}
+
 /** Hands the parts of the container to the React tree. This is the only place that does so. */
 export function AppProviders({
   container,
@@ -36,7 +65,10 @@ export function AppProviders({
   useForegroundRefresh(container);
 
   const auth = useMemo(
-    () => ({ authService: container.authService, sessionStore: container.sessionStore }),
+    () => ({
+      authService: container.authService,
+      sessionStore: container.sessionStore,
+    }),
     [container],
   );
   const devTools = useMemo(
@@ -59,11 +91,15 @@ export function AppProviders({
           <StatusOverlayProvider value={container.statusOverlay}>
             <SchedulerProvider value={container.scheduler}>
               <AuthProvider value={auth}>
-                <DevToolsProvider value={devTools}>
-                  <SettingsProvider value={settings}>
-                    <SupportProvider value={container.supportLog}>{children}</SupportProvider>
-                  </SettingsProvider>
-                </DevToolsProvider>
+                <CategoryModelProvider>
+                  <CaptureWithCategoryModel container={container}>
+                    <DevToolsProvider value={devTools}>
+                      <SettingsProvider value={settings}>
+                        <SupportProvider value={container.supportLog}>{children}</SupportProvider>
+                      </SettingsProvider>
+                    </DevToolsProvider>
+                  </CaptureWithCategoryModel>
+                </CategoryModelProvider>
               </AuthProvider>
             </SchedulerProvider>
           </StatusOverlayProvider>

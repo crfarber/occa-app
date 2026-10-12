@@ -46,3 +46,16 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# local training env, downloads, generated data (never commit photos / TFLite from export)
+training/.venv/
+training/.clothing_cache/
+training/clothing_data/
+training/export/
+training/__pycache__/
+training/**/__pycache__/
+training/train_run*.log
+training/**/*.jpg
+training/**/*.jpeg
+training/**/*.png
+training/**/*.webp
