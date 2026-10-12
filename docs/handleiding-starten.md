@@ -45,6 +45,10 @@ Als Corepack geblokkeerd is op nieuwere Node: `corepack enable` opnieuw of pnpm 
 
 ## 3. Project klonen en dependencies
 
+Liever geen Terminal? Gebruik [GitHub Desktop op een MacBook](handleiding-github-desktop.md)
+om Git te installeren en de repo te klonen. Daarna in Terminal (of via Claude) verder
+met `pnpm install` in die map.
+
 ```bash
 git clone <jouw-repo-url> occa
 cd occa

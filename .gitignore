@@ -34,7 +34,9 @@ coverage/
 # editor and assistant state (local permissions, paths, machine settings)
 .vscode/
 .idea/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 
 # macOS
 .DS_Store

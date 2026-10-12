@@ -95,12 +95,45 @@ Elk domein (`src/domeinen/<naam>/`) heeft dezelfde lagen:
 
 `index.ts` is de publieke, pure ingang van een domein; `ui.ts` de React Native-ingang. Andere domeinen en routes importeren alleen via die twee bestanden. Deze regels worden afgedwongen door [src/architecture.test.ts](src/architecture.test.ts).
 
+## Buddy (Claude Code)
+
+Voor wie geen development-ervaring heeft: open Claude Code **in deze map** (`occa`),
+niet in een bovenliggende folder. Buddy helpt eerst een specificatie schrijven en bouwt
+pas na jouw akkoord.
+
+Nog geen Git of code op je Mac? Begin met
+[GitHub Desktop installeren (MacBook)](docs/handleiding-github-desktop.md): dat zet
+Git klaar en downloadt de Occa-map.
+
+**Terminal**
+
+```bash
+cd /pad/naar/occa
+claude
+```
+
+Daarna in de chat, bijvoorbeeld:
+
+```text
+/buddy ik wil dat medewerkers een item kunnen afkeuren met een reden
+```
+
+**Desktop-app:** open of selecteer de map `occa` als project. Typ daarna `/buddy`.
+
+Buddy stelt één vraag tegelijk, maakt een specificatie in gewone taal, en vraagt dan
+of die uitgevoerd mag worden (bouwen), nog aangepast moet worden, of alleen bewaard.
+
+Skill: [.agent/skills/buddy/](.agent/skills/buddy/) (ook beschikbaar als `/buddy` in
+Claude Code via `.claude/skills/buddy`).
+
 ## Documentatie
 
 - [docs/handleiding-starten.md](docs/handleiding-starten.md): installeren, iOS-build, categoriemodel trainen
+- [docs/handleiding-github-desktop.md](docs/handleiding-github-desktop.md): Git + Occa-map via GitHub Desktop (MacBook)
 - [docs/conventions.md](docs/conventions.md): hoe we hier code schrijven
 - [docs/architecture.md](docs/architecture.md): lagen, datastromen, sessiebeheer, wat bewust niet in de boilerplate zit
 - [docs/decisions/](docs/decisions/): waarom we voor deze aanpak kozen
 - [docs/functioneel/open-vragen.md](docs/functioneel/open-vragen.md): open vragen met de aanname die we maken
 - [docs/wiki/](docs/wiki/): Occa-onderwerpen (scannen, model, listings, …)
 - [CLAUDE.md](CLAUDE.md): werkafspraken voor AI-assistenten
+- [Buddy](#buddy-claude-code): specificatie schrijven met Claude Code (`/buddy`)
