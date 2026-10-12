@@ -3,7 +3,6 @@ import { fetch as expoFetch } from 'expo/fetch';
 import type { Authenticator } from '@/domeinen/auth';
 import { createAzureAdAuthenticator } from '@/domeinen/auth/ui';
 import { createAverageImageColorSampler } from '@/domeinen/capture/ui';
-import { createRnLogShare } from '@/domeinen/support/ui';
 import { createDeviceKeyValueStore } from '@/shared/platform/rn/key-value-store';
 import { createExpoHaptics } from '@/shared/platform/rn/expo-haptics';
 import { createDeviceSecretStore } from '@/shared/platform/rn/secure-store';
@@ -41,7 +40,6 @@ export function createNativeContainer(): Container {
     keyValueStore: createDeviceKeyValueStore(),
     language: detectLanguage(),
     deviceAuthenticator: buildDeviceAuthenticator(config),
-    logShare: createRnLogShare(),
     // UI loads the custom TFLite category model via CategoryModelProvider.
     // Container still requires a classifier for the type and for tests.
     imageClassifier: { label: async () => [] },

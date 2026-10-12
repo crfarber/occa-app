@@ -111,7 +111,6 @@ export const nl = {
     noLabels: 'Geen labels gevonden.',
     labelRow: '{{text}} ({{score}}%)',
     score: 'Zekerheid {{score}}%',
-    goLogin: 'Naar inloggen',
     goHome: 'Naar home',
     permission: {
       allow: 'Camera toestaan',
@@ -135,44 +134,18 @@ export const nl = {
       crop: 'Het lukte niet om de foto bij te snijden.',
     },
   },
-  debug: {
-    open: 'Debug',
-    title: 'Opslag en stores',
-    hint: 'Alleen tijdens ontwikkeling. Tokens komen van SecureStore, niet via getAccessToken.',
-    refresh: 'Verversen',
-    copyAccessToken: 'Kopieer access token',
-    copyAccessTokenTitle: 'JWT naar klembord kopiëren?',
-    copyAccessTokenWarning:
-      'Dit is een geldig aanmeldtoken. Iedereen met toegang tot je klembord kan het gebruiken. Deel het niet.',
-    copyAccessTokenConfirm: 'Kopieer token',
-    copyAccessTokenCopied: 'Access token gekopieerd. Deel deze waarde niet.',
-    copyAccessTokenUnavailable: 'Er is geen access token beschikbaar.',
-    copyAccessTokenFailed: 'Access token kopiëren is mislukt.',
-    storage: 'Storage',
-    sessionStore: 'Session store',
-    tokenProvider: 'TokenProvider',
-    queryCache: 'Query cache',
-  },
   settings: {
     open: 'Instellingen',
     title: 'Instellingen',
-    version: '{{version}} ({{method}})',
     section: {
       general: 'Algemeen',
     },
     language: {
       title: 'Taal',
-      hint: 'Kies de taal van de app. De keuze blijft bewaard, ook na uitloggen.',
+      hint: 'Kies de taal van de app. De keuze blijft bewaard.',
       nl: 'Nederlands',
       en: 'Engels',
     },
-  },
-  support: {
-    open: 'Log voor support',
-    title: 'Support',
-    hint: 'Dit is het log van de afgelopen dag. Persoonsgegevens zijn eruit gehaald. Stuur het naar support.',
-    share: 'Delen',
-    empty: 'Er staat nog niets in het log.',
   },
 } as const;
 
@@ -289,7 +262,6 @@ export const en: Translations = {
     noLabels: 'No labels found.',
     labelRow: '{{text}} ({{score}}%)',
     score: 'Confidence {{score}}%',
-    goLogin: 'Go to sign-in',
     goHome: 'Go to home',
     permission: {
       allow: 'Allow camera',
@@ -313,44 +285,18 @@ export const en: Translations = {
       crop: 'Cropping the photo failed.',
     },
   },
-  debug: {
-    open: 'Debug',
-    title: 'Storage and stores',
-    hint: 'Development only. Tokens come from SecureStore, not through getAccessToken.',
-    refresh: 'Refresh',
-    copyAccessToken: 'Copy access token',
-    copyAccessTokenTitle: 'Copy JWT to the clipboard?',
-    copyAccessTokenWarning:
-      'This is a valid sign-in token. Anyone with access to your clipboard can use it. Do not share it.',
-    copyAccessTokenConfirm: 'Copy token',
-    copyAccessTokenCopied: 'Access token copied. Do not share this value.',
-    copyAccessTokenUnavailable: 'No access token is available.',
-    copyAccessTokenFailed: 'Copying the access token failed.',
-    storage: 'Storage',
-    sessionStore: 'Session store',
-    tokenProvider: 'TokenProvider',
-    queryCache: 'Query cache',
-  },
   settings: {
     open: 'Settings',
     title: 'Settings',
-    version: '{{version}} ({{method}})',
     section: {
       general: 'General',
     },
     language: {
       title: 'Language',
-      hint: 'Choose the app language. The choice is kept, including after sign-out.',
+      hint: 'Choose the app language. The choice is kept.',
       nl: 'Dutch',
       en: 'English',
     },
-  },
-  support: {
-    open: 'Log for support',
-    title: 'Support',
-    hint: 'This is the log of the past day. Personal data has been removed. Send it to support.',
-    share: 'Share',
-    empty: 'The log is still empty.',
   },
 };
 

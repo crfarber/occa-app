@@ -23,7 +23,7 @@ const navigationTheme = {
   colors: { ...DefaultTheme.colors, background: colors.surface },
 };
 
-/** Shows the login or the app, depending on the session. Stack.Protected does the navigating. */
+/** Scan is the landing route; (app) is always reachable (no login gate). */
 function Navigator() {
   const status = useSession((state) => state.status);
 
@@ -48,12 +48,7 @@ function Navigator() {
   return (
     <Stack initialRouteName="(scan)" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(scan)" />
-      <Stack.Protected guard={status === 'signed-in'}>
-        <Stack.Screen name="(app)" />
-      </Stack.Protected>
-      <Stack.Protected guard={status === 'signed-out'}>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
+      <Stack.Screen name="(app)" />
     </Stack>
   );
 }
@@ -66,7 +61,6 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      {/* No dark theme yet: dark icons on the light login screen; (app) switches to light. */}
       <StatusBar style="dark" />
       <AppProviders container={container}>
         <ThemeProvider value={navigationTheme}>

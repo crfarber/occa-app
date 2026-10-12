@@ -4,7 +4,7 @@ Beginpunt voor welke pagina's er horen en waar de bronnen staan. Klopt een pad n
 een domein bijgekomen, dan is dat zelf een bevinding: meld het en werk deze kaart bij.
 
 Dit project is **Occa** (Expo-app voor vintage kleding-scan). Domeinen nu:
-`auth`, `capture`, `home`, `settings`, `support`.
+`auth` (infra, geen product-login), `capture`, `home`, `settings`.
 
 Wiki = Occa-productspecificatie. **Geen wiki-pagina** voor platformonderwerpen, o.a. inloggen,
 debug, support-log, API, i18n, stores, feedback, builds, testen → `docs/architecture.md`,
@@ -30,7 +30,7 @@ debug, support-log, API, i18n, stores, feedback, builds, testen → `docs/archit
 | `listings.md`        | lokale listing-draft, scan-store, opslaan in sessie                | `capture/domain/listing.ts`, `capture/store/scan-store.ts`                                                |
 | `home.md`            | startscherm / overzicht scans                                      | `home/`, `capture/domain/group-scans.ts`                                                                  |
 
-`auth`, `settings`, `support`, debug: geen wiki-pagina (ook geen beweringen over
+`auth` (infra), `settings`, debug/support: geen wiki-pagina (ook geen beweringen over
 login/support-log/debug in Occa-pagina's) → ADR 0008/0012/0013/0014/0017 + architecture.
 
 ## Gepland (pagina pas schrijven als de code er is)

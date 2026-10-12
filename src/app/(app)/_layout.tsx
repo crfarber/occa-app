@@ -22,8 +22,6 @@ export default function AppLayout() {
         <Stack.Screen name="item/[id]" options={{ title: t('listing.title') }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
         <Stack.Screen name="language" options={{ title: t('settings.language.title') }} />
-        <Stack.Screen name="support" options={{ title: t('support.title') }} />
-        <Stack.Screen name="debug" options={{ title: t('debug.title') }} />
       </Stack>
     </>
   );

@@ -23,6 +23,7 @@ domein zonder backend. "Niet gebouwd" = alleen brief/docs.
 | STAT-03 | Labels → categorie/subtype/kleur/patroon + pixelkleur-fallback bestaan. | `interpret-labels.ts`, `draft-from-labels.ts`      | ja           | gebouwd               |
 | STAT-04 | Scans staan in een Zustand-store voor de sessie; wissen bij uitloggen.  | `scan-store.ts`, `container.ts`                    | ja           | gebouwd               |
 | STAT-05 | Taalinstelling en HttpClient-boilerplate bestaan (platform).            | `settings/`, `shared/api/`                         | ja           | gebouwd (boilerplate) |
+| STAT-11 | Geen product-UI voor login, debug of support-log.                       | routes, settings, providers                        | —            | verwijderd            |
 | STAT-06 | OCR (ML Kit text recognition) is niet geïmplementeerd.                  | —                                                  | —            | niet gebouwd          |
 | STAT-10 | Multi-foto POC: max. 3, rollen overview/label, merge overview-labels.   | `scan-photos.ts`, `merge-interpret-results.ts`, UI | ja           | gebouwd (POC)         |
 | STAT-07 | Upload-wachtrij / backend-itemstatus is niet geïmplementeerd.           | —                                                  | —            | niet gebouwd          |

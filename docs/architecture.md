@@ -21,12 +21,10 @@ Een pijl betekent "mag importeren". Naar rechts is lager. Tussen domeinen kan al
 
 | Domein     | Inhoud                                                                                                                                           | Zie                                                                                                                                        |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `auth`     | sessie, refresh-beleid, `TokenProvider`, `SessionLifecycle`, `Authenticator`-poort met demo- en Azure AD-implementatie, sessiestore, loginscherm | [0008](decisions/0008-sessies-en-tokens.md), [0012](decisions/0012-azure-ad-inloggen.md), [0017](decisions/0017-inlogmethode-per-build.md) |
-| `settings` | instellingenscherm, taalkeuze (NL/EN, bewaard), uitloggen                                                                                        | [0013](decisions/0013-instellingen-en-taal.md)                                                                                             |
-| `support`  | log van de laatste dag, al geredigeerd, delen via het systeem                                                                                    | [0014](decisions/0014-supportlog-en-querycache.md)                                                                                         |
-| `home`     | het startscherm na inloggen; vervang het door het eerste echte domein                                                                            |                                                                                                                                            |
-
-Daarnaast `src/bootstrap/dev/`: een debugscherm (alleen in `__DEV__`) met opslag, sessie en querycache, en het access token kopiëren.
+| `auth`     | sessie, refresh-beleid, `TokenProvider`, `SessionLifecycle`, `Authenticator`-poort (infra voor latere API; geen login-UI in de productnavigatie) | [0008](decisions/0008-sessies-en-tokens.md), [0012](decisions/0012-azure-ad-inloggen.md), [0017](decisions/0017-inlogmethode-per-build.md) |
+| `settings` | instellingenscherm, taalkeuze (NL/EN, bewaard)                                                                                                   | [0013](decisions/0013-instellingen-en-taal.md)                                                                                             |
+| `home`     | overzicht van sessie-scans; bereikbaar zonder login-gate                                                                                         |                                                                                                                                            |
+| `capture`  | camera, gallery, on-device herkenning, listing-draft                                                                                             |                                                                                                                                            |
 
 ## Opstarten
 
@@ -37,10 +35,10 @@ app/_layout.tsx
        └─ container.start()        taal herstellen, SessionLifecycle.start(), TokenProvider.restore()
             └─ sessionStore.status: unknown → signed-in | signed-out
   └─ <Navigator>                   splash tot status bekend is
-       └─ Stack.Protected          (app) als signed-in, (auth) als signed-out
+       └─ Stack                    (scan) initieel; (app) altijd bereikbaar
 ```
 
-Uitloggen, of een sessie die niet te redden is, wijzigt alleen de sessiestatus; de navigatie volgt vanzelf. Bij een verlopen sessie toont het loginscherm waarom (`signedOutReason`).
+Er is geen login-gate in de productnavigatie. Sessie-infra blijft beschikbaar voor HTTP-tokens.
 
 ## Een verzoek met token
 

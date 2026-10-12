@@ -22,7 +22,7 @@ Tik op item → `/item/[id]`.
 
 ## Randgevallen en bewuste keuzes
 
-- Home zit achter `(app)` / `signed-in`; de standaardlanding is de scanroute.
+- De standaardlanding is de scanroute; home is altijd bereikbaar via `(app)`.
 
 ## Open vragen
 

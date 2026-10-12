@@ -15,7 +15,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSession } from '@/domeinen/auth/ui';
 import { Button } from '@/shared/ui/button';
 import { choose } from '@/shared/ui/confirm';
 import { Screen } from '@/shared/ui/screen';
@@ -132,21 +131,19 @@ function CameraHeaderTitle({ children }: { children: string }) {
 function CaptureBackButton({ shadowed }: { shadowed: boolean }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const sessionStatus = useSession((state) => state.status);
-  const signedIn = sessionStatus === 'signed-in';
 
   const leave = () => {
     if (router.canGoBack()) {
       router.back();
       return;
     }
-    router.push(signedIn ? '/home' : '/login');
+    router.push('/home');
   };
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={signedIn ? t('capture.goHome') : t('capture.goLogin')}
+      accessibilityLabel={t('capture.goHome')}
       onPress={leave}
       hitSlop={spacing.sm}
       style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
@@ -194,7 +191,6 @@ async function draftFromOverviewResults(
 export function CaptureScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const sessionStatus = useSession((state) => state.status);
   const classifier = useImageClassifier();
   const colorSampler = useImageColorSampler();
   const recordScan = useRecordScan();
@@ -402,11 +398,7 @@ export function CaptureScreen() {
       result: phase.result,
       listing: listingFromForm(form),
     });
-    if (sessionStatus === 'signed-in') {
-      router.push('/home');
-      return;
-    }
-    reset();
+    router.push('/home');
   };
 
   const pickCategory = async () => {

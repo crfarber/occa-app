@@ -23,7 +23,6 @@ import {
   type ScanStore,
 } from '@/domeinen/capture';
 import { createLanguageSettings, type LanguageSettings } from '@/domeinen/settings';
-import { supportLogText, type LogShare, type SupportLog } from '@/domeinen/support';
 import { createHttpClient, type HttpClient } from '@/shared/api/http-client';
 import type { RuntimeConfig } from '@/shared/config/runtime-config';
 import { createI18n } from '@/shared/i18n/i18n';
@@ -43,7 +42,6 @@ import {
 } from '@/shared/platform/ports';
 import { createQueryClient } from '@/shared/query/create-query-client';
 import { clearQueryCache, loadQueryCache, saveQueryCache } from '@/shared/query/query-cache-store';
-import { collectDebugSnapshot, type DebugSnapshot } from './dev/collect-debug-snapshot';
 
 /** What the device provides. Everything else is built from it. */
 export type ContainerInput = {
@@ -58,8 +56,6 @@ export type ContainerInput = {
    * sign-in, which the container builds itself.
    */
   deviceAuthenticator: Authenticator | null;
-  /** System share sheet for the redacted support log. */
-  logShare: LogShare;
   /**
    * On-device image labels. Tests pass a fake. Production UI overrides this with
    * the custom category TFLite model from `CategoryModelProvider`.
@@ -86,7 +82,6 @@ export type Container = {
   sessionStore: SessionStore;
   authService: AuthService;
   lifecycle: SessionLifecycle;
-  supportLog: SupportLog;
   clock: Clock;
   /** Non-blocking result feedback (toasts). */
   feedback: ToastQueue;
@@ -99,11 +94,6 @@ export type Container = {
   imageColorSampler: ImageColorSampler;
   /** Scans of this session. Cleared on sign-out. */
   scanStore: ScanStore;
-  /**
-   * Storage, session UI state and query cache for the __DEV__ debug screen.
-   * Does not expose SecretStore on the container — only this snapshot.
-   */
-  loadDebugSnapshot(): Promise<DebugSnapshot>;
   /** Restores the session and starts keeping it fresh. Call once, at app start. */
   start(): Promise<void>;
   stop(): void;
@@ -208,11 +198,6 @@ export function createContainer(input: ContainerInput): Container {
   const unbindSessionStore = bindSessionStore(tokenProvider, sessionStore);
   const scanStore = createScanStore(clock);
 
-  const supportLog: SupportLog = {
-    text: () => supportLogText(logger.entries(), clock.now()),
-    share: () => input.logShare.share(supportLogText(logger.entries(), clock.now())),
-  };
-
   /** Data of the previous user must not be visible to the next one. Preferences survive. */
   async function clearUserData(): Promise<void> {
     cancelPendingCacheSave();
@@ -261,7 +246,6 @@ export function createContainer(input: ContainerInput): Container {
     sessionStore,
     authService,
     lifecycle,
-    supportLog,
     clock,
     feedback,
     statusOverlay,
@@ -270,15 +254,6 @@ export function createContainer(input: ContainerInput): Container {
     imageClassifier: input.imageClassifier,
     imageColorSampler: input.imageColorSampler,
     scanStore,
-
-    loadDebugSnapshot: () =>
-      collectDebugSnapshot({
-        secretStore: input.secretStore,
-        keyValueStore: input.keyValueStore,
-        sessionStore,
-        tokenProvider,
-        queryClient,
-      }),
 
     async start() {
       // Before the session is known, so the first screen after the splash is already right.

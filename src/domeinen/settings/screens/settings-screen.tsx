@@ -1,13 +1,9 @@
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useAuthService, useSession } from '@/domeinen/auth/ui';
-import { Button } from '@/shared/ui/button';
 import { Screen } from '@/shared/ui/screen';
-import { useStatusOverlay } from '@/shared/ui/status-overlay-host';
 import { colors, spacing } from '@/shared/ui/theme';
 import { SettingsMenuRow } from '../components/settings-menu-row';
 
@@ -15,10 +11,9 @@ const appVersion = Constants.expoConfig?.version ?? '';
 
 type MenuItem = {
   key: string;
-  labelKey: 'settings.language.title' | 'support.open' | 'debug.open';
-  route: '/language' | '/support' | '/debug';
+  labelKey: 'settings.language.title';
+  route: '/language';
   icon: keyof typeof Ionicons.glyphMap;
-  devOnly?: boolean;
 };
 
 const MENU_ITEMS: readonly MenuItem[] = [
@@ -28,65 +23,28 @@ const MENU_ITEMS: readonly MenuItem[] = [
     route: '/language',
     icon: 'globe-outline',
   },
-  { key: 'support', labelKey: 'support.open', route: '/support', icon: 'document-text-outline' },
-  { key: 'debug', labelKey: 'debug.open', route: '/debug', icon: 'bug-outline', devOnly: true },
 ];
 
-/** A general menu (language, support, debug in dev builds) and the app version above sign-out. */
+/** Language settings and the app version. */
 export function SettingsScreen() {
   const { t } = useTranslation();
-  const authService = useAuthService();
-  const statusOverlay = useStatusOverlay();
-  const method = useSession((state) => state.method);
-  const [signingOut, setSigningOut] = useState(false);
-
-  const visibleItems = MENU_ITEMS.filter((item) => item.devOnly !== true || __DEV__);
-
-  const signOut = async (): Promise<void> => {
-    if (signingOut) {
-      return;
-    }
-    setSigningOut(true);
-    try {
-      await statusOverlay.run(t('feedback.processing.signOut'), async () => {
-        await authService.signOut();
-        return { tone: 'none' };
-      });
-    } finally {
-      setSigningOut(false);
-    }
-  };
 
   return (
-    <Screen
-      contentStyle={styles.content}
-      footer={
-        <Button
-          label={t('common.signOut')}
-          variant="danger"
-          onPress={() => void signOut()}
-          loading={signingOut}
-        />
-      }
-    >
+    <Screen contentStyle={styles.content}>
       <Text style={styles.section}>{t('settings.section.general')}</Text>
       <View style={styles.list}>
-        {visibleItems.map((item, index) => (
+        {MENU_ITEMS.map((item, index) => (
           <SettingsMenuRow
             key={item.key}
             label={t(item.labelKey)}
             icon={<Ionicons name={item.icon} size={20} color={colors.text} />}
             onPress={() => router.push(item.route)}
-            showDivider={index < visibleItems.length - 1}
+            showDivider={index < MENU_ITEMS.length - 1}
           />
         ))}
       </View>
       <View style={styles.versionWrap}>
-        <Text style={styles.version}>
-          {method === null
-            ? appVersion
-            : t('settings.version', { version: appVersion, method: t(`login.method.${method}`) })}
-        </Text>
+        <Text style={styles.version}>{appVersion}</Text>
       </View>
     </Screen>
   );

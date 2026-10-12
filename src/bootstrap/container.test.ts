@@ -164,7 +164,6 @@ function setup(
     language: 'nl',
     deviceAuthenticator:
       config.auth.provider === 'demo' ? null : { ...fake.authenticator, ...options.authenticator },
-    logShare: { share: async () => undefined },
     imageClassifier: { label: async () => [] },
     imageColorSampler: { sampleColorName: async () => null },
     fetch: backend.fetch,
@@ -264,7 +263,6 @@ describe('signing in', () => {
         keyValueStore: createInMemoryStore(),
         language: 'nl',
         deviceAuthenticator: null,
-        logShare: { share: async () => undefined },
         imageClassifier: { label: async () => [] },
         imageColorSampler: { sampleColorName: async () => null },
       }),

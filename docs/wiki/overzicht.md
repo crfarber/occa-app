@@ -11,9 +11,9 @@ medewerker mag scannen of naar home gaat.
 
 ## Hoe het werkt
 
-`createNativeContainer()` bouwt één keer bij appstart. `container.start()` herstelt taal en sessie.
-De scan-route `(scan)` is de `initialRouteName` en staat buiten de auth-guards: scannen kan direct.
-`(app)` (home, item) hangt aan sessiestatus via `Stack.Protected`.
+`createNativeContainer()` bouwt één keer bij appstart. `container.start()` herstelt taal en sessie
+(sessie-infra blijft beschikbaar voor latere API-calls). De scan-route `(scan)` is de
+`initialRouteName`. `(app)` (home, item, settings) is altijd bereikbaar; er is geen login-gate.
 
 ```mermaid
 flowchart TD
@@ -23,7 +23,7 @@ flowchart TD
   providers --> nav[Navigator]
   nav -->|status unknown| splash[Splash]
   nav -->|altijd| scan["(scan)"]
-  nav -->|signed-in| app["(app)"]
+  nav -->|altijd| app["(app)"]
 ```
 
 ## Beweringen
@@ -32,15 +32,15 @@ flowchart TD
 | ------- | -------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------- |
 | BOOT-01 | De container wordt één keer gebouwd bij laden van de root layout.                            | `src/app/_layout.tsx`         | —                      |
 | BOOT-02 | Bij `status === 'unknown'` blijft de splash zichtbaar tot de sessie bekend is.               | `src/app/_layout.tsx`         | —                      |
-| BOOT-03 | `(scan)` is de initiële route en staat niet achter een auth-guard.                           | `src/app/_layout.tsx`         | —                      |
-| BOOT-04 | `(app)` is alleen bereikbaar bij `signed-in`.                                                | `src/app/_layout.tsx`         | —                      |
+| BOOT-03 | `(scan)` is de initiële route.                                                               | `src/app/_layout.tsx`         | —                      |
+| BOOT-04 | `(app)` is altijd bereikbaar (geen auth-guard).                                              | `src/app/_layout.tsx`         | —                      |
 | BOOT-05 | Domein-dependencies komen via `AppProviders` uit de container (geen singletons in domeinen). | `src/bootstrap/providers.tsx` | `architecture.test.ts` |
 | BOOT-06 | Productie-UI gebruikt het custom TFLite-categoriemodel via `CategoryModelProvider`.          | `src/bootstrap/providers.tsx` | —                      |
 
 ## Randgevallen en bewuste keuzes
 
-- Scannen zonder sessie is bewust (POC-snelheid). Opslaan stuurt alleen naar `/home` als er een
-  sessie is; anders blijft de camera open voor de volgende foto.
+- Inloggen, debug en support-log horen niet bij de Occa-product-UI; auth blijft in de container
+  beschikbaar voor latere backend-calls.
 
 ## Open vragen
 
