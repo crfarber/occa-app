@@ -1,0 +1,533 @@
+{
+  "description": "Aanbevolen blad-categorieën voor het TFLite-categoriemodel. Mapnaam in dataset/ = id. Visueel te scheiden; geen merk/maat/stof.",
+  "appCategories": [
+    "top",
+    "broek",
+    "schoenen",
+    "tas",
+    "jas",
+    "rok",
+    "jurk",
+    "trui_vest",
+    "accessoire"
+  ],
+  "leaves": [
+    {
+      "id": "t_shirt",
+      "appCategory": "top",
+      "labelNl": "T-shirt",
+      "tier": 1,
+      "why": "Korte mouwen, ronde/V-hals, geen kraag — sterk silhouet."
+    },
+    {
+      "id": "polo",
+      "appCategory": "top",
+      "labelNl": "Polo",
+      "tier": 1,
+      "why": "Kraag + knoopjes, duidelijk anders dan tee."
+    },
+    {
+      "id": "overhemd",
+      "appCategory": "top",
+      "labelNl": "Overhemd",
+      "tier": 1,
+      "why": "Volledige knoopsluiting + kraag; mannelijke snit."
+    },
+    {
+      "id": "blouse",
+      "appCategory": "top",
+      "labelNl": "Blouse",
+      "tier": 1,
+      "why": "Vrouwelijke snit, vaak losser/zachter dan overhemd."
+    },
+    {
+      "id": "tanktop",
+      "appCategory": "top",
+      "labelNl": "Tanktop / hemd",
+      "tier": 1,
+      "why": "Mouwloos, smalle bandjes — makkelijk te zien."
+    },
+    {
+      "id": "crop_top",
+      "appCategory": "top",
+      "labelNl": "Crop top",
+      "tier": 2,
+      "why": "Korte lengte; alleen als genoeg voorbeelden, anders bij t_shirt."
+    },
+    {
+      "id": "tuniek",
+      "appCategory": "top",
+      "labelNl": "Tuniek",
+      "tier": 2,
+      "why": "Langer dan shirt, korter dan jurk."
+    },
+    {
+      "id": "body",
+      "appCategory": "top",
+      "labelNl": "Body",
+      "tier": 2,
+      "why": "Strakke eendelige top; lastiger hangend."
+    },
+
+    {
+      "id": "trui",
+      "appCategory": "trui_vest",
+      "labelNl": "Trui",
+      "tier": 1,
+      "why": "Dikke gebreide/gevoerde bovenstuk zonder rits-kap."
+    },
+    {
+      "id": "hoodie",
+      "appCategory": "trui_vest",
+      "labelNl": "Hoodie",
+      "tier": 1,
+      "why": "Capuchon + vaak kangaroo-zak: zeer herkenbaar."
+    },
+    {
+      "id": "sweater",
+      "appCategory": "trui_vest",
+      "labelNl": "Sweater / sweatshirt",
+      "tier": 1,
+      "why": "Tricot, ronde hals, sportiever dan gebreide trui."
+    },
+    {
+      "id": "vest",
+      "appCategory": "trui_vest",
+      "labelNl": "Vest / cardigan",
+      "tier": 1,
+      "why": "Open voorpand of knoop/rits over de lengte."
+    },
+    {
+      "id": "fleece",
+      "appCategory": "trui_vest",
+      "labelNl": "Fleece",
+      "tier": 2,
+      "why": "Pluizige textuur; anders bij trui als te weinig data."
+    },
+    {
+      "id": "spencer",
+      "appCategory": "trui_vest",
+      "labelNl": "Spencer (mouwloos gebreid)",
+      "tier": 2,
+      "why": "Mouwloos gebreid; kan verward worden met vest."
+    },
+
+    {
+      "id": "jas",
+      "appCategory": "jas",
+      "labelNl": "Jas (licht / tussen)",
+      "tier": 1,
+      "why": "Heup/dijlengte outerwear, geen zware winterjas."
+    },
+    {
+      "id": "winterjas",
+      "appCategory": "jas",
+      "labelNl": "Winterjas / parka",
+      "tier": 1,
+      "why": "Dik, lang, vaak capuchon — duidelijk zwaarder."
+    },
+    {
+      "id": "blazer",
+      "appCategory": "jas",
+      "labelNl": "Blazer / colbert",
+      "tier": 1,
+      "why": "Gestructureerd, revers, kantoor-snit."
+    },
+    {
+      "id": "spijkerjas",
+      "appCategory": "jas",
+      "labelNl": "Spijkerjas",
+      "tier": 1,
+      "why": "Denim textuur + typische zakken/knopen."
+    },
+    {
+      "id": "leren_jas",
+      "appCategory": "jas",
+      "labelNl": "Leren jas",
+      "tier": 1,
+      "why": "Glanzende/leertextuur, vaak biker/perfecto."
+    },
+    {
+      "id": "regenjas",
+      "appCategory": "jas",
+      "labelNl": "Regenjas / windbreaker",
+      "tier": 2,
+      "why": "Glanzend synthetisch, vaak kap."
+    },
+    {
+      "id": "mantel",
+      "appCategory": "jas",
+      "labelNl": "Mantel / coat",
+      "tier": 1,
+      "why": "Knie of langer, rechte snit."
+    },
+    {
+      "id": "bodywarmer",
+      "appCategory": "jas",
+      "labelNl": "Bodywarmer",
+      "tier": 1,
+      "why": "Mouwloos gewatteerd — uniek silhouet."
+    },
+    {
+      "id": "kimono_vest",
+      "appCategory": "jas",
+      "labelNl": "Kimono / lange vestjas",
+      "tier": 2,
+      "why": "Open vallend, lang; anders bij vest of mantel."
+    },
+
+    {
+      "id": "jeans",
+      "appCategory": "broek",
+      "labelNl": "Jeans",
+      "tier": 1,
+      "why": "Denim + typische steekzakken."
+    },
+    {
+      "id": "chino",
+      "appCategory": "broek",
+      "labelNl": "Chino / pantalon",
+      "tier": 1,
+      "why": "Gladde stof, nette snit, geen denim."
+    },
+    {
+      "id": "broek_wide",
+      "appCategory": "broek",
+      "labelNl": "Wijde broek / palazzo",
+      "tier": 2,
+      "why": "Zeer wijd been; optioneel, anders bij chino."
+    },
+    {
+      "id": "short",
+      "appCategory": "broek",
+      "labelNl": "Short",
+      "tier": 1,
+      "why": "Boven de knie — lengte is het kenmerk."
+    },
+    {
+      "id": "bermuda",
+      "appCategory": "broek",
+      "labelNl": "Bermuda",
+      "tier": 2,
+      "why": "Knie-lengte short; anders bij short."
+    },
+    {
+      "id": "legging",
+      "appCategory": "broek",
+      "labelNl": "Legging",
+      "tier": 1,
+      "why": "Strak, elastisch, geen rits/zakken typisch."
+    },
+    {
+      "id": "joggingbroek",
+      "appCategory": "broek",
+      "labelNl": "Joggingbroek",
+      "tier": 1,
+      "why": "Elastiek/boord onderaan, sportstof."
+    },
+    {
+      "id": "cargobroek",
+      "appCategory": "broek",
+      "labelNl": "Cargobroek",
+      "tier": 2,
+      "why": "Zijzakken op de pijp; anders bij chino."
+    },
+    {
+      "id": "overall_tuinbroek",
+      "appCategory": "broek",
+      "labelNl": "Overall / tuinbroek",
+      "tier": 1,
+      "why": "Borststuk + bretels: sterk silhouet."
+    },
+
+    {
+      "id": "rok_kort",
+      "appCategory": "rok",
+      "labelNl": "Korte rok",
+      "tier": 1,
+      "why": "Boven/op knie; lengte t.o.v. lichaam."
+    },
+    {
+      "id": "rok_midi",
+      "appCategory": "rok",
+      "labelNl": "Midi-rok",
+      "tier": 2,
+      "why": "Kuitlengte; merge met rok_lang als weinig data."
+    },
+    {
+      "id": "rok_lang",
+      "appCategory": "rok",
+      "labelNl": "Lange rok / maxi",
+      "tier": 1,
+      "why": "Enkel-lengte."
+    },
+    {
+      "id": "rok_plisse",
+      "appCategory": "rok",
+      "labelNl": "Plissérok",
+      "tier": 2,
+      "why": "Vouwen zichtbaar; anders bij rok_*."
+    },
+
+    {
+      "id": "jurk_kort",
+      "appCategory": "jurk",
+      "labelNl": "Korte jurk",
+      "tier": 1,
+      "why": "Eéndelig, boven/op knie."
+    },
+    {
+      "id": "jurk_lang",
+      "appCategory": "jurk",
+      "labelNl": "Lange jurk",
+      "tier": 1,
+      "why": "Eéndelig, lang."
+    },
+    {
+      "id": "jurk_wrap",
+      "appCategory": "jurk",
+      "labelNl": "Wikkeljurk",
+      "tier": 2,
+      "why": "Overlappende voorkant; anders bij jurk_*."
+    },
+    {
+      "id": "jumpsuit",
+      "appCategory": "jurk",
+      "labelNl": "Jumpsuit / playsuit",
+      "tier": 1,
+      "why": "Eéndelig met pijpen i.p.v. rok."
+    },
+    {
+      "id": "pak_set",
+      "appCategory": "jurk",
+      "labelNl": "Tweedelig pak / set",
+      "tier": 2,
+      "why": "Alleen als set als één item gefotografeerd wordt."
+    },
+
+    {
+      "id": "sneaker",
+      "appCategory": "schoenen",
+      "labelNl": "Sneaker",
+      "tier": 1,
+      "why": "Sportieve zool + lage schacht."
+    },
+    {
+      "id": "laars",
+      "appCategory": "schoenen",
+      "labelNl": "Laars (hoog)",
+      "tier": 1,
+      "why": "Schacht tot kuit/knie."
+    },
+    {
+      "id": "enkellaars",
+      "appCategory": "schoenen",
+      "labelNl": "Enkellaars",
+      "tier": 1,
+      "why": "Schacht tot enkel — anders dan sneaker/pump."
+    },
+    {
+      "id": "pump",
+      "appCategory": "schoenen",
+      "labelNl": "Pump / hak",
+      "tier": 1,
+      "why": "Hak zichtbaar, gesloten of peep-toe."
+    },
+    {
+      "id": "sandaal",
+      "appCategory": "schoenen",
+      "labelNl": "Sandaal",
+      "tier": 1,
+      "why": "Open, bandjes."
+    },
+    {
+      "id": "instapper",
+      "appCategory": "schoenen",
+      "labelNl": "Instapper / loafer",
+      "tier": 1,
+      "why": "Lage gesloten schoen zonder veter."
+    },
+    {
+      "id": "veterschoen",
+      "appCategory": "schoenen",
+      "labelNl": "Nette veterschoen",
+      "tier": 1,
+      "why": "Oxford/derby-achtig, geen sneakerzool."
+    },
+    {
+      "id": "klomp_muil",
+      "appCategory": "schoenen",
+      "labelNl": "Klomp / muil",
+      "tier": 2,
+      "why": "Open hiel; anders bij sandaal/instapper."
+    },
+    {
+      "id": "sportschoen",
+      "appCategory": "schoenen",
+      "labelNl": "Sportschoen (hardloop e.d.)",
+      "tier": 2,
+      "why": "Merge met sneaker als weinig data."
+    },
+
+    {
+      "id": "handtas",
+      "appCategory": "tas",
+      "labelNl": "Handtas",
+      "tier": 1,
+      "why": "Korte hengsels, gedragen in de hand."
+    },
+    {
+      "id": "schoudertas",
+      "appCategory": "tas",
+      "labelNl": "Schoudertas",
+      "tier": 1,
+      "why": "Lange band, middelgroot."
+    },
+    {
+      "id": "crossbody",
+      "appCategory": "tas",
+      "labelNl": "Crossbody",
+      "tier": 2,
+      "why": "Lange band, kleiner; anders bij schoudertas."
+    },
+    {
+      "id": "rugzak",
+      "appCategory": "tas",
+      "labelNl": "Rugzak",
+      "tier": 1,
+      "why": "Twee schouderbanden — zeer herkenbaar."
+    },
+    {
+      "id": "clutch",
+      "appCategory": "tas",
+      "labelNl": "Clutch / avondtasje",
+      "tier": 1,
+      "why": "Klein, geen/lange band."
+    },
+    {
+      "id": "weekendtas",
+      "appCategory": "tas",
+      "labelNl": "Weekendtas / shopper",
+      "tier": 1,
+      "why": "Groot volume, open of rits."
+    },
+    {
+      "id": "heuptas",
+      "appCategory": "tas",
+      "labelNl": "Heuptas",
+      "tier": 2,
+      "why": "Klein, riemvorm."
+    },
+    {
+      "id": "koffer_reistas",
+      "appCategory": "tas",
+      "labelNl": "Koffer / reistas",
+      "tier": 2,
+      "why": "Alleen als de winkel die verkoopt."
+    },
+
+    {
+      "id": "pet",
+      "appCategory": "accessoire",
+      "labelNl": "Pet / baseball cap",
+      "tier": 1,
+      "why": "Klep voor."
+    },
+    {
+      "id": "hoed",
+      "appCategory": "accessoire",
+      "labelNl": "Hoed",
+      "tier": 1,
+      "why": "Brede rand of bolhoed-vorm."
+    },
+    {
+      "id": "muts",
+      "appCategory": "accessoire",
+      "labelNl": "Muts / beanie",
+      "tier": 1,
+      "why": "Gebreid, geen klep."
+    },
+    {
+      "id": "sjaal",
+      "appCategory": "accessoire",
+      "labelNl": "Sjaal / shawl",
+      "tier": 1,
+      "why": "Lange strook stof."
+    },
+    {
+      "id": "riem",
+      "appCategory": "accessoire",
+      "labelNl": "Riem",
+      "tier": 1,
+      "why": "Gesp + band; plat gefotografeerd."
+    },
+    {
+      "id": "zonnebril",
+      "appCategory": "accessoire",
+      "labelNl": "Zonnebril",
+      "tier": 1,
+      "why": "Glazen + montuur — sterk object."
+    },
+    {
+      "id": "das_strik",
+      "appCategory": "accessoire",
+      "labelNl": "Das / strik",
+      "tier": 2,
+      "why": "Klein object; genoeg close-ups nodig."
+    },
+    {
+      "id": "handschoenen",
+      "appCategory": "accessoire",
+      "labelNl": "Handschoenen",
+      "tier": 2,
+      "why": "Paar naast elkaar fotograferen."
+    },
+    {
+      "id": "sjaal_sjaaltje",
+      "appCategory": "accessoire",
+      "labelNl": "Foulard / klein sjaaltje",
+      "tier": 2,
+      "why": "Merge met sjaal als weinig data."
+    },
+
+    {
+      "id": "badpak",
+      "appCategory": "jurk",
+      "labelNl": "Badpak",
+      "tier": 2,
+      "why": "Alleen seizoen/assortiment; anders apart accessoire-bad."
+    },
+    {
+      "id": "bikini",
+      "appCategory": "jurk",
+      "labelNl": "Bikini",
+      "tier": 2,
+      "why": "Tweedelig badkleding; set samen fotograferen."
+    },
+    {
+      "id": "pyjama_lounge",
+      "appCategory": "top",
+      "labelNl": "Pyjama / lounge set",
+      "tier": 2,
+      "why": "Alleen als set; anders splitsen top/broek."
+    }
+  ],
+  "startWithTier1": "Begin met tier 1. Voeg tier 2 toe zodra je ≥100 foto's per map hebt, anders merge met de dichtstbijzijnde tier-1.",
+  "doNotTrainAsClasses": [
+    "merk (OCR / merkenlijst)",
+    "maat (OCR / regex)",
+    "materiaalpercentage (OCR)",
+    "conditie / vintage-periode (cloud of handmatig)",
+    "kleur als aparte klasse (pixel-sample of apart kleurmodel)",
+    "patroon als enige klasse (apart of cloud) — wel als extra label later",
+    "gender (te contextafhankelijk)",
+    "prijs / seizoen"
+  ],
+  "photoTips": [
+    "Zelfde afstand en achtergrond als in de winkel-app (kader).",
+    "Hangend én liggend mengen per klasse.",
+    "Alle kleuren en patronen binnen één klasse (model leert vorm, niet kleur).",
+    "Geen model/persoon op de foto als dat kan — minder ruis.",
+    "Moeilijke paren (overhemd/blouse, trui/sweater) bewust beide kanten vullen."
+  ]
+}

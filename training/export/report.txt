@@ -1,0 +1,4 @@
+Quantisatie: int8 (uint8 input) — ML Kit-compatibel zonder TFLite-metadata.
+Approx val accuracy (320 samples): 56.6%.
+Float16 (~75%) blijft beschikbaar als export/relabel_category_float16.tflite maar
+heeft float32 I/O zonder NormalizationOptions; ML Kit weigert dat op het toestel.
