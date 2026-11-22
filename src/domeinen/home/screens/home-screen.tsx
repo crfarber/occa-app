@@ -3,67 +3,54 @@ import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   groupScansByCategory,
   listingSummary,
   primaryPhotoUri,
-  type ScanSectionKey,
+  scanSectionMessageKey,
   type ScannedItem,
 } from '@/domeinen/capture';
 import { useScans } from '@/domeinen/capture/ui';
 import { Button } from '@/shared/ui/button';
+import { stickySectionHeaderStyle, useHeaderInset } from '@/shared/ui/glass-header';
 import { Screen } from '@/shared/ui/screen';
-import { colors, radius, spacing, type } from '@/shared/ui/theme';
+import { hasFloatingHeader, systemAdjustsHeaderInset } from '@/shared/ui/stack-header';
+import { TAB_BAR_CLEARANCE } from '@/shared/ui/tab-bar-inset';
+import { colors, radius, size, spacingX, spacingY, type } from '@/shared/ui/theme';
 
-type SectionLabelKey =
-  | 'capture.category.top'
-  | 'capture.category.broek'
-  | 'capture.category.schoenen'
-  | 'capture.category.tas'
-  | 'capture.category.jas'
-  | 'capture.category.rok'
-  | 'capture.category.jurk'
-  | 'capture.category.trui_vest'
-  | 'capture.category.unknown';
-
-const SECTION_LABEL = {
-  top: 'capture.category.top',
-  broek: 'capture.category.broek',
-  schoenen: 'capture.category.schoenen',
-  tas: 'capture.category.tas',
-  jas: 'capture.category.jas',
-  rok: 'capture.category.rok',
-  jurk: 'capture.category.jurk',
-  trui_vest: 'capture.category.trui_vest',
-  unknown: 'capture.category.unknown',
-} as const satisfies Record<ScanSectionKey, SectionLabelKey>;
-
-/** Start a scan, then review what was found in the single scans tab. */
+/** Start a scan, then review what was found in this session. */
 export function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const items = useScans();
   const sections = useMemo(() => groupScansByCategory(items), [items]);
+  const headerInset = useHeaderInset();
+  // iOS floating headers also add the home-indicator inset to the list itself.
+  const listBottomPad =
+    TAB_BAR_CLEARANCE + (systemAdjustsHeaderInset ? 0 : insets.bottom) + spacingY.lg;
+  const start = (
+    <View style={styles.start}>
+      <Text style={styles.startTitle}>{t('home.start.title')}</Text>
+      <Text style={styles.startBody}>{t('home.start.body')}</Text>
+      <Button label={t('home.start.action')} onPress={() => router.navigate('/scan')} />
+    </View>
+  );
 
   return (
-    <Screen scroll={false} contentStyle={styles.content}>
-      <View style={styles.start}>
-        <Text style={styles.startTitle}>{t('home.start.title')}</Text>
-        <Text style={styles.startBody}>{t('home.start.body')}</Text>
-        <Button label={t('home.start.action')} onPress={() => router.navigate('/')} />
-      </View>
-      <View style={styles.tabBar} accessibilityRole="tablist">
-        <View accessibilityRole="tab" accessibilityState={{ selected: true }} style={styles.tab}>
-          <Text style={styles.tabLabel}>{t('home.tabs.scanned')}</Text>
-          <View style={styles.tabIndicator} />
-        </View>
-      </View>
+    <Screen scroll={false} safeAreaBottom={false} contentStyle={styles.content}>
+      {hasFloatingHeader ? null : start}
       <SectionList
         style={styles.list}
+        contentInsetAdjustmentBehavior={systemAdjustsHeaderInset ? 'automatic' : 'never'}
+        ListHeaderComponent={hasFloatingHeader ? start : null}
         sections={sections}
         keyExtractor={(item) => item.id}
         renderSectionHeader={({ section }) => (
-          <Text style={styles.section}>{t(SECTION_LABEL[section.key])}</Text>
+          <Text style={[styles.section, stickySectionHeaderStyle(headerInset, spacingY.lg)]}>
+            {t(scanSectionMessageKey(section.key))}
+          </Text>
         )}
         renderItem={({ item }) => (
           <ScannedItemRow
@@ -72,7 +59,10 @@ export function HomeScreen() {
           />
         )}
         ListEmptyComponent={<Text style={styles.empty}>{t('home.empty')}</Text>}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingTop: headerInset, paddingBottom: listBottomPad },
+        ]}
         stickySectionHeadersEnabled
       />
     </Screen>
@@ -122,63 +112,46 @@ function ScannedItemRow({ item, onPress }: { item: ScannedItem; onPress: () => v
 const styles = StyleSheet.create({
   content: { padding: 0, gap: 0 },
   start: {
-    padding: spacing.md,
-    gap: spacing.sm,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.md,
+    gap: spacingY.sm,
     backgroundColor: colors.background,
   },
   startTitle: { ...type.header, color: colors.text },
   startBody: { ...type.body, color: colors.textMuted },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  tab: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    gap: spacing.sm,
-  },
-  tabLabel: { ...type.label, color: colors.brand },
-  tabIndicator: {
-    height: spacing.xs,
-    borderRadius: radius.sm,
-    backgroundColor: colors.brand,
-  },
   list: { flex: 1 },
-  listContent: { flexGrow: 1, paddingBottom: spacing.lg },
+  listContent: { flexGrow: 1, paddingBottom: spacingY.lg },
   section: {
     ...type.small,
-    fontWeight: '600',
-    letterSpacing: 0.5,
     textTransform: 'uppercase',
     color: colors.textMuted,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: spacingX.md,
+    paddingTop: spacingY.lg,
+    paddingBottom: spacingY.sm,
     backgroundColor: colors.surface,
   },
   empty: {
     ...type.body,
     color: colors.textMuted,
-    padding: spacing.md,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.md,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    gap: spacingX.md,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.sm,
     backgroundColor: colors.background,
   },
   rowPressed: { opacity: 0.7 },
   photo: {
-    width: spacing.xl * 3,
-    height: spacing.xl * 3,
+    width: size.thumbnail,
+    height: size.thumbnail,
     borderRadius: radius.md,
     backgroundColor: colors.border,
   },
-  rowText: { flex: 1, gap: spacing.xs },
+  rowText: { flex: 1, gap: spacingY.xs },
   finding: { ...type.body, color: colors.text },
   score: { ...type.small, color: colors.textMuted },
   complete: { ...type.small, color: colors.action },

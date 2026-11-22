@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useRouter } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Flash, FlashOff, MediaImage, NavArrowLeft } from 'iconoir-react-native';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Image,
@@ -17,8 +17,10 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/shared/ui/button';
 import { choose } from '@/shared/ui/confirm';
+import { IconButton } from '@/shared/ui/icon-button';
 import { Screen } from '@/shared/ui/screen';
-import { colors, radius, spacing, type } from '@/shared/ui/theme';
+import { SegmentedControl } from '@/shared/ui/segmented-control';
+import { colors, radius, shadowRN, size, spacingX, spacingY, type } from '@/shared/ui/theme';
 import { AlignPhoto } from '../components/align-photo';
 import { FrameOverlay } from '../components/frame-overlay';
 import { SelectRow } from '../components/select-row';
@@ -35,8 +37,8 @@ import {
   frameRectInViewport,
   mapViewRectToImageCrop,
   type ImageCropRect,
-  type Size,
 } from '../domain/frame-crop';
+import { categoryMessageKey } from '../domain/category-labels';
 import {
   interpretLabels,
   PATTERNS,
@@ -45,36 +47,21 @@ import {
   type ProductCategory,
 } from '../domain/interpret-labels';
 import { mergeInterpretResults } from '../domain/merge-interpret-results';
+import { canSubmitCaptureDraft, MAX_CLOTHING_PHOTOS } from '../domain/capture-draft';
+import { primaryPhotoUri, type PhotoRole } from '../domain/scan-photos';
+import { useSelectedStoreId } from '@/domeinen/shops/ui';
+import { useSubmission } from '@/domeinen/submission/ui';
+import { useStatusOverlay } from '@/shared/ui/status-overlay-host';
 import {
-  canAddPhoto,
-  MAX_SCAN_PHOTOS,
-  primaryPhotoUri,
-  type PhotoRole,
-  type ScanPhoto,
-} from '../domain/scan-photos';
-import { useImageClassifier, useImageColorSampler, useRecordScan } from '../hooks/capture-context';
+  useCaptureDraft,
+  useImageClassifier,
+  useImageColorSampler,
+  useRecordScan,
+  useScanStoreActions,
+  useTextRecognizer,
+} from '../hooks/capture-context';
+import { useCaptureUi } from '../hooks/use-capture-ui';
 import { cropImageToRect } from '../platform/rn/crop-image';
-
-type CategoryMessageKey =
-  | 'capture.category.top'
-  | 'capture.category.broek'
-  | 'capture.category.schoenen'
-  | 'capture.category.tas'
-  | 'capture.category.jas'
-  | 'capture.category.rok'
-  | 'capture.category.jurk'
-  | 'capture.category.trui_vest';
-
-const CATEGORY_KEYS: Record<ProductCategory, CategoryMessageKey> = {
-  top: 'capture.category.top',
-  broek: 'capture.category.broek',
-  schoenen: 'capture.category.schoenen',
-  tas: 'capture.category.tas',
-  jas: 'capture.category.jas',
-  rok: 'capture.category.rok',
-  jurk: 'capture.category.jurk',
-  trui_vest: 'capture.category.trui_vest',
-};
 
 type PatternMessageKey =
   | 'capture.pattern.gestreept'
@@ -96,7 +83,10 @@ const PATTERN_KEYS: Record<Pattern, PatternMessageKey> = {
 };
 
 /** Bottom action stack height used when laying out the camera frame. */
-const CAMERA_ACTIONS_RESERVE = 140;
+const CAMERA_ACTIONS_RESERVE = 248;
+
+const THUMB_WIDTH = 60;
+const THUMB_HEIGHT = 80;
 
 /**
  * Height of a transparent native stack header, including the status bar.
@@ -115,20 +105,11 @@ function transparentHeaderHeight(
   return topInset + 64;
 }
 
-/** White title over the camera preview. The opaque header uses the default title. */
-function CameraHeaderTitle({ children }: { children: string }) {
-  return (
-    <Text numberOfLines={1} style={styles.cameraHeaderTitle}>
-      {children}
-    </Text>
-  );
-}
-
 /**
  * Leaves the camera. The scan route is the root, so without history this opens home or login
  * on top; their own back button returns here.
  */
-function CaptureBackButton({ shadowed }: { shadowed: boolean }) {
+function CaptureBackButton() {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -141,37 +122,14 @@ function CaptureBackButton({ shadowed }: { shadowed: boolean }) {
   };
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <IconButton
       accessibilityLabel={t('capture.goHome')}
       onPress={leave}
-      hitSlop={spacing.sm}
-      style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-    >
-      <Ionicons
-        name={Platform.OS === 'android' ? 'arrow-back' : 'chevron-back'}
-        size={28}
-        color={colors.onBrand}
-        style={shadowed ? styles.backIconShadow : undefined}
-      />
-    </Pressable>
+      transparent={true}
+      icon={<NavArrowLeft width={24} height={24} color={colors.text} strokeWidth={1.75} />}
+    />
   );
 }
-
-type CapturePhase =
-  | { kind: 'camera' }
-  | {
-      kind: 'align';
-      uri: string;
-      imageSize: Size;
-    }
-  | { kind: 'classifying'; uri: string }
-  | { kind: 'result'; result: InterpretLabelsResult }
-  | {
-      kind: 'error';
-      uri: string | null;
-      messageKey: 'capture.errors.classify' | 'capture.errors.capture' | 'capture.errors.crop';
-    };
 
 async function draftFromOverviewResults(
   overviewResults: InterpretLabelsResult[],
@@ -193,18 +151,34 @@ export function CaptureScreen() {
   const router = useRouter();
   const classifier = useImageClassifier();
   const colorSampler = useImageColorSampler();
+  const textRecognizer = useTextRecognizer();
   const recordScan = useRecordScan();
+  const submission = useSubmission();
+  const statusOverlay = useStatusOverlay();
+  const storeId = useSelectedStoreId();
+  const draft = useCaptureDraft();
+  const scanActions = useScanStoreActions();
   const cameraRef = useRef<CameraView>(null);
   const alignCropRef = useRef<ImageCropRect | null>(null);
   const insets = useSafeAreaInsets();
   const viewport = useWindowDimensions();
   const [permission, requestPermission] = useCameraPermissions();
-  const [phase, setPhase] = useState<CapturePhase>({ kind: 'camera' });
-  const [form, setForm] = useState<ResultFormDraft | null>(null);
-  const [photos, setPhotos] = useState<ScanPhoto[]>([]);
-  const [overviewResults, setOverviewResults] = useState<InterpretLabelsResult[]>([]);
-  const [pendingRole, setPendingRole] = useState<PhotoRole>('overview');
-  const showingCamera = permission?.granted === true && phase.kind === 'camera';
+  const {
+    state: ui,
+    showCamera,
+    showAlign,
+    showRecognizing,
+    showClassifying,
+    showResult,
+    showError,
+    toggleFlash,
+    setCaptureMode,
+    setFormField,
+    resetUi,
+  } = useCaptureUi();
+  const { phase, flash, form, captureMode } = ui;
+  const showingCamera =
+    permission?.granted === true && (phase.kind === 'camera' || phase.kind === 'recognizing');
   const showingAlign = phase.kind === 'align';
 
   const headerTop = transparentHeaderHeight(insets.top, viewport);
@@ -213,7 +187,7 @@ export function CaptureScreen() {
       frameRectInViewport(
         { width: viewport.width, height: viewport.height },
         {
-          topReserve: headerTop + spacing.xl + 48,
+          topReserve: headerTop + spacingY.xl + 48,
           bottomReserve: insets.bottom + CAMERA_ACTIONS_RESERVE,
           horizontalInsetFraction: 0.12,
         },
@@ -225,7 +199,7 @@ export function CaptureScreen() {
     const rect = frameRectInViewport(
       { width: viewport.width, height: viewport.height },
       {
-        topReserve: headerTop + spacing.xl + 56,
+        topReserve: headerTop + spacingY.xl + 56,
         bottomReserve: insets.bottom + CAMERA_ACTIONS_RESERVE,
         horizontalInsetFraction: 0.08,
       },
@@ -233,47 +207,28 @@ export function CaptureScreen() {
     return { width: rect.width, height: rect.height };
   }, [viewport.width, viewport.height, headerTop, insets.bottom]);
 
-  const finishWithPhoto = useCallback(
-    async (uri: string, role: PhotoRole) => {
-      const nextPhotos = [...photos, { uri, role }];
+  const finishWithPhoto = async (uri: string, role: PhotoRole) => {
+    if (role === 'overview') {
+      scanActions.addDraftPhoto({ uri, role });
+      showCamera();
+      return;
+    }
 
-      if (role === 'label') {
-        setPhotos(nextPhotos);
-        const result = mergeInterpretResults(overviewResults);
-        if (form === null) {
-          setForm(formDraftFromLabels(result));
-        }
-        setPhase({ kind: 'result', result });
-        return;
-      }
-
-      setPhase({ kind: 'classifying', uri });
-      try {
-        const labels = await classifier.label(uri);
-        const single = interpretLabels(labels);
-        const nextOverview = [...overviewResults, single];
-        const { result, draft } = await draftFromOverviewResults(nextOverview, uri, colorSampler);
-        setPhotos(nextPhotos);
-        setOverviewResults(nextOverview);
-        setForm(draft);
-        setPhase({ kind: 'result', result });
-      } catch {
-        setForm(null);
-        setPhase({ kind: 'error', uri, messageKey: 'capture.errors.classify' });
-      }
-    },
-    [classifier, colorSampler, form, overviewResults, photos],
-  );
+    showRecognizing(uri);
+    try {
+      const recognized = await textRecognizer.recognize(uri);
+      scanActions.setDraftLabel(uri, recognized.text);
+      showCamera();
+    } catch {
+      showError(uri, 'capture.errors.recognize');
+    }
+  };
 
   const takePhoto = async () => {
     try {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.8 });
       if (photo?.uri === undefined || photo.width === undefined || photo.height === undefined) {
-        setPhase({
-          kind: 'error',
-          uri: null,
-          messageKey: 'capture.errors.capture',
-        });
+        showError(null, 'capture.errors.capture');
         return;
       }
 
@@ -283,30 +238,18 @@ export function CaptureScreen() {
         { width: photo.width, height: photo.height },
       );
       if (crop === null) {
-        setPhase({
-          kind: 'error',
-          uri: photo.uri,
-          messageKey: 'capture.errors.crop',
-        });
+        showError(photo.uri, 'capture.errors.crop');
         return;
       }
 
       try {
         const croppedUri = await cropImageToRect(photo.uri, crop);
-        await finishWithPhoto(croppedUri, pendingRole);
+        await finishWithPhoto(croppedUri, captureMode === 'textLabel' ? 'label' : 'overview');
       } catch {
-        setPhase({
-          kind: 'error',
-          uri: photo.uri,
-          messageKey: 'capture.errors.crop',
-        });
+        showError(photo.uri, 'capture.errors.crop');
       }
     } catch {
-      setPhase({
-        kind: 'error',
-        uri: null,
-        messageKey: 'capture.errors.capture',
-      });
+      showError(null, 'capture.errors.capture');
     }
   };
 
@@ -322,19 +265,11 @@ export function CaptureScreen() {
     const width = asset.width;
     const height = asset.height;
     if (width === undefined || height === undefined || width < 1 || height < 1) {
-      setPhase({
-        kind: 'error',
-        uri: asset.uri,
-        messageKey: 'capture.errors.crop',
-      });
+      showError(asset.uri, 'capture.errors.crop');
       return;
     }
     alignCropRef.current = null;
-    setPhase({
-      kind: 'align',
-      uri: asset.uri,
-      imageSize: { width, height },
-    });
+    showAlign(asset.uri, { width, height });
   };
 
   const confirmAlign = async () => {
@@ -343,60 +278,71 @@ export function CaptureScreen() {
     }
     const crop = alignCropRef.current;
     if (crop === null) {
-      setPhase({
-        kind: 'error',
-        uri: phase.uri,
-        messageKey: 'capture.errors.crop',
-      });
+      showError(phase.uri, 'capture.errors.crop');
       return;
     }
     try {
       const croppedUri = await cropImageToRect(phase.uri, crop);
-      await finishWithPhoto(croppedUri, pendingRole);
+      await finishWithPhoto(croppedUri, captureMode === 'textLabel' ? 'label' : 'overview');
     } catch {
-      setPhase({
-        kind: 'error',
-        uri: phase.uri,
-        messageKey: 'capture.errors.crop',
-      });
+      showError(phase.uri, 'capture.errors.crop');
     }
   };
 
   const reset = () => {
-    setForm(null);
-    setPhotos([]);
-    setOverviewResults([]);
-    setPendingRole('overview');
+    scanActions.clearDraft();
     alignCropRef.current = null;
-    setPhase({ kind: 'camera' });
+    resetUi();
   };
 
-  const startAddPhoto = async () => {
-    if (!canAddPhoto(photos)) {
+  const submit = async () => {
+    if (!canSubmitCaptureDraft(draft)) {
       return;
     }
-    const selected = await choose({
-      title: t('capture.photoRole.title'),
-      options: [
-        { id: 'overview', label: t('capture.photoRole.overview') },
-        { id: 'label', label: t('capture.photoRole.label') },
-      ],
-    });
-    if (selected !== 'overview' && selected !== 'label') {
-      return;
+    const overviewUris = draft.photos
+      .filter((photo) => photo.role === 'overview')
+      .map((photo) => photo.uri);
+    showClassifying(overviewUris[0] ?? '');
+    try {
+      const results: InterpretLabelsResult[] = [];
+      for (const uri of overviewUris) {
+        results.push(interpretLabels(await classifier.label(uri)));
+      }
+      const latestOverviewUri = overviewUris[overviewUris.length - 1] ?? null;
+      const next = await draftFromOverviewResults(results, latestOverviewUri, colorSampler);
+      showResult(next.result, next.draft);
+    } catch {
+      showError(overviewUris[0] ?? null, 'capture.errors.classify', true);
     }
-    setPendingRole(selected);
-    setPhase({ kind: 'camera' });
   };
 
   const save = () => {
-    if (phase.kind !== 'result' || form === null || photos.length === 0) {
+    if (phase.kind !== 'result' || form === null || draft.photos.length === 0) {
       return;
     }
-    recordScan({
-      photos,
+    if (storeId === null) {
+      void statusOverlay.run(t('capture.saving'), async () => ({
+        tone: 'error',
+        message: t('capture.errors.noStore'),
+      }));
+      return;
+    }
+    const listing = listingFromForm(form);
+    const scanned = recordScan({
+      photos: draft.photos,
+      labelText: draft.labelText,
       result: phase.result,
-      listing: listingFromForm(form),
+      listing,
+    });
+    void statusOverlay.run(t('capture.saving'), async () => {
+      await submission.enqueue({
+        storeId,
+        clientKey: `scan-${scanned.id}`,
+        photos: scanned.photos,
+        result: scanned.result,
+        listing: scanned.listing,
+      });
+      return { tone: 'queued', message: t('capture.queued') };
     });
     router.push('/home');
   };
@@ -408,14 +354,14 @@ export function CaptureScreen() {
         { id: '', label: t('capture.clearChoice'), style: 'cancel' },
         ...PRODUCT_CATEGORIES.map((id) => ({
           id,
-          label: t(CATEGORY_KEYS[id]),
+          label: t(categoryMessageKey(id)),
         })),
       ],
     });
     if (selected === null || form === null) {
       return;
     }
-    setForm({ ...form, category: selected as ProductCategory | '' });
+    setFormField('category', selected as ProductCategory | '');
   };
 
   const pickColor = async () => {
@@ -429,7 +375,7 @@ export function CaptureScreen() {
     if (selected === null || form === null) {
       return;
     }
-    setForm({ ...form, color: selected });
+    setFormField('color', selected);
   };
 
   const pickSubtype = async () => {
@@ -443,7 +389,7 @@ export function CaptureScreen() {
     if (selected === null || form === null) {
       return;
     }
-    setForm({ ...form, subcategory: selected });
+    setFormField('subcategory', selected);
   };
 
   const pickPattern = async () => {
@@ -460,7 +406,7 @@ export function CaptureScreen() {
     if (selected === null || form === null) {
       return;
     }
-    setForm({ ...form, pattern: selected as Pattern | '' });
+    setFormField('pattern', selected as Pattern | '');
   };
 
   const headerTransparent = showingCamera || showingAlign;
@@ -468,14 +414,26 @@ export function CaptureScreen() {
     <Stack.Screen
       options={{
         headerTransparent,
-        headerShadowVisible: !headerTransparent,
+        headerShadowVisible: false,
         headerStyle: {
           backgroundColor: headerTransparent ? 'transparent' : colors.brand,
         },
-        headerTitle: headerTransparent
-          ? ({ children }) => <CameraHeaderTitle>{children}</CameraHeaderTitle>
-          : t('capture.title'),
-        headerLeft: () => <CaptureBackButton shadowed={headerTransparent} />,
+        headerLeft: () => <CaptureBackButton />,
+        headerRight: () =>
+          showingCamera ? (
+            <IconButton
+              accessibilityLabel={flash === 'on' ? t('capture.flash.off') : t('capture.flash.on')}
+              onPress={toggleFlash}
+              transparent={true}
+              icon={
+                flash === 'on' ? (
+                  <Flash width={24} height={24} color={colors.text} strokeWidth={1.75} />
+                ) : (
+                  <FlashOff width={24} height={24} color={colors.text} strokeWidth={1.75} />
+                )
+              }
+            />
+          ) : null,
       }}
     />
   );
@@ -484,7 +442,7 @@ export function CaptureScreen() {
     return (
       <>
         {header}
-        <Screen>
+        <Screen floatingHeader={false}>
           <Text style={styles.body}>{t('common.loading')}</Text>
         </Screen>
       </>
@@ -496,6 +454,7 @@ export function CaptureScreen() {
       <>
         {header}
         <Screen
+          floatingHeader={false}
           footer={
             <>
               <Button
@@ -516,46 +475,79 @@ export function CaptureScreen() {
     );
   }
 
-  if (phase.kind === 'camera' && permission.granted) {
-    const cameraHint = pendingRole === 'label' ? t('capture.photoRole.label') : t('capture.hint');
+  if ((phase.kind === 'camera' || phase.kind === 'recognizing') && permission.granted) {
+    const cameraHint =
+      captureMode === 'textLabel' ? t('capture.photoRole.label') : t('capture.hint');
+    const clothingCount = draft.photos.filter((photo) => photo.role === 'overview').length;
+    const canTakeAnother = captureMode === 'textLabel' || clothingCount < MAX_CLOTHING_PHOTOS;
+    const recognizing = phase.kind === 'recognizing';
     return (
       <>
         {header}
         <View style={styles.fullscreen}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" flash={flash} />
           <FrameOverlay frame={cameraFrame} label={t('capture.frameLabel')} />
           <SafeAreaView
             style={[
               styles.cameraOverlay,
               {
-                paddingTop: headerTop + spacing.sm,
+                paddingTop: headerTop + spacingY.sm,
               },
             ]}
             edges={['bottom']}
           >
-            <Text style={styles.cameraHint}>{cameraHint}</Text>
-            <View style={styles.cameraActions}>
-              <Button
-                label={t('capture.takePhoto')}
-                variant="light"
-                onPress={() => void takePhoto()}
+            <Text style={styles.cameraHint}>
+              {recognizing ? t('capture.recognizingLabel') : cameraHint}
+            </Text>
+            <View style={styles.cameraControls}>
+              <SegmentedControl
+                options={[
+                  { id: 'clothing', label: t('capture.modes.clothing') },
+                  { id: 'textLabel', label: t('capture.modes.textLabel') },
+                ]}
+                value={captureMode}
+                onChange={setCaptureMode}
               />
+              <View style={styles.cameraActions}>
+                <View style={styles.cameraActionSlot}>
+                  <IconButton
+                    accessibilityLabel={t('capture.pickPhoto')}
+                    disabled={!canTakeAnother || recognizing}
+                    onPress={() => void pickPhoto()}
+                    icon={
+                      <MediaImage width={24} height={24} color={colors.text} strokeWidth={1.75} />
+                    }
+                  />
+                </View>
+                <View style={styles.cameraActionSlot}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('capture.takePhoto')}
+                    onPress={() => void takePhoto()}
+                    disabled={!canTakeAnother || recognizing}
+                    style={({ pressed }) => [
+                      styles.shutter,
+                      pressed && styles.shutterPressed,
+                      (!canTakeAnother || recognizing) && styles.shutterDisabled,
+                    ]}
+                  >
+                    <View style={styles.shutterInner} />
+                  </Pressable>
+                </View>
+                <View style={styles.cameraActionSlot}>
+                  <Text style={styles.photoCount}>
+                    {t('capture.photoCount', {
+                      count: clothingCount,
+                      max: MAX_CLOTHING_PHOTOS,
+                    })}
+                  </Text>
+                </View>
+              </View>
               <Button
-                label={t('capture.pickPhoto')}
-                variant="light"
-                onPress={() => void pickPhoto()}
+                label={t('capture.continue')}
+                onPress={() => void submit()}
+                disabled={!canSubmitCaptureDraft(draft) || recognizing}
               />
-              {photos.length > 0 ? (
-                <Button
-                  label={t('capture.cancelAdd')}
-                  variant="light"
-                  onPress={() => {
-                    const result = mergeInterpretResults(overviewResults);
-                    setForm(formDraftFromLabels(result));
-                    setPhase({ kind: 'result', result });
-                  }}
-                />
-              ) : null}
             </View>
           </SafeAreaView>
         </View>
@@ -569,7 +561,7 @@ export function CaptureScreen() {
         {header}
         <View style={styles.fullscreen}>
           <SafeAreaView
-            style={[styles.cameraOverlay, { paddingTop: headerTop + spacing.sm }]}
+            style={[styles.cameraOverlay, { paddingTop: headerTop + spacingY.sm }]}
             edges={['bottom']}
           >
             <Text style={styles.cameraHint}>{t('capture.alignHint')}</Text>
@@ -601,24 +593,18 @@ export function CaptureScreen() {
       ? phase.uri
       : phase.kind === 'error'
         ? phase.uri
-        : primaryPhotoUri(photos);
+        : primaryPhotoUri(draft.photos);
   const busy = phase.kind === 'classifying';
-  const canSave = phase.kind === 'result' && form !== null && photos.length > 0;
+  const canSave = phase.kind === 'result' && form !== null && draft.photos.length > 0;
 
   return (
     <>
       {header}
       <Screen
+        floatingHeader={false}
         footer={
           <>
             {canSave ? <Button label={t('capture.save')} onPress={save} /> : null}
-            {canSave && canAddPhoto(photos) ? (
-              <Button
-                label={t('capture.addPhoto')}
-                variant="secondary"
-                onPress={() => void startAddPhoto()}
-              />
-            ) : null}
             <Button
               label={t('capture.again')}
               variant={canSave ? 'secondary' : 'primary'}
@@ -635,11 +621,13 @@ export function CaptureScreen() {
             accessibilityIgnoresInvertColors
           />
         ) : null}
-        {photos.length > 0 ? (
+        {draft.photos.length > 0 ? (
           <>
-            <Text style={styles.section}>{t('capture.photos', { max: MAX_SCAN_PHOTOS })}</Text>
+            <Text style={styles.section}>
+              {t('capture.photos', { max: MAX_CLOTHING_PHOTOS + 1 })}
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbRow}>
-              {photos.map((photo) => (
+              {draft.photos.map((photo) => (
                 <View key={`${photo.role}-${photo.uri}`} style={styles.thumbWrap}>
                   <Image
                     source={{ uri: photo.uri }}
@@ -664,11 +652,14 @@ export function CaptureScreen() {
         ) : null}
         {phase.kind === 'result' && form !== null ? (
           <>
+            <Text style={styles.section}>{t('capture.summary.title')}</Text>
+            <Text style={styles.body}>{t('capture.summary.label')}</Text>
+            <Text style={styles.recognizedText}>{draft.labelText}</Text>
             <Text style={styles.section}>{t('capture.draft.title')}</Text>
             <View style={styles.form}>
               <SelectRow
                 label={t('capture.draft.category')}
-                value={form.category === '' ? '' : t(CATEGORY_KEYS[form.category])}
+                value={form.category === '' ? '' : t(categoryMessageKey(form.category))}
                 placeholder={t('capture.choose')}
                 onPress={() => void pickCategory()}
               />
@@ -719,29 +710,12 @@ const styles = StyleSheet.create({
   cameraOverlay: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingHorizontal: spacingX.lg,
+    paddingBottom: spacingY.md,
   },
   alignStage: {
     flex: 1,
     justifyContent: 'center',
-  },
-  cameraHeaderTitle: {
-    ...type.label,
-    color: colors.onInverseSurface,
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  backButton: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  backButtonPressed: { opacity: 0.6 },
-  backIconShadow: {
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   cameraHint: {
     ...type.body,
@@ -751,12 +725,55 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
+  cameraControls: {
+    gap: spacingY.md,
+  },
   cameraActions: {
-    gap: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 80,
+    paddingHorizontal: spacingX.lg,
+  },
+  cameraActionSlot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shutter: {
+    width: size.shutter,
+    height: size.shutter,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.xxl,
+    backgroundColor: colors.surface,
+    ...shadowRN.raised,
+  },
+  shutterPressed: { opacity: 0.7, transform: [{ scale: 0.96 }] },
+  shutterDisabled: { opacity: 0.45 },
+  shutterInner: {
+    width: size.shutterInner,
+    height: size.shutterInner,
+    borderRadius: radius.xxl,
+    borderWidth: 3,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  photoCount: {
+    ...type.small,
+    color: colors.onInverseSurface,
+    textAlign: 'center',
+  },
+  recognizedText: {
+    ...type.body,
+    color: colors.text,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.inputFill,
   },
   body: { ...type.body, color: colors.textMuted },
-  section: { ...type.label, color: colors.text, marginTop: spacing.sm },
-  form: { gap: spacing.sm },
+  section: { ...type.label, color: colors.text, marginTop: spacingY.sm },
+  form: { gap: spacingY.sm },
   labelRow: { ...type.body, color: colors.text },
   error: { ...type.body, color: colors.danger },
   photo: {
@@ -766,21 +783,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   thumbRow: {
-    marginTop: spacing.xs,
+    marginTop: spacingY.xs,
   },
   thumbWrap: {
-    marginRight: spacing.sm,
-    width: 72,
+    marginRight: spacingX.sm,
+    width: THUMB_WIDTH,
   },
   thumb: {
-    width: 72,
-    height: 96,
+    width: THUMB_WIDTH,
+    height: THUMB_HEIGHT,
     borderRadius: radius.md,
     backgroundColor: colors.border,
   },
   thumbLabel: {
     ...type.small,
     color: colors.textMuted,
-    marginTop: spacing.xs,
+    marginTop: spacingY.xs,
   },
 });

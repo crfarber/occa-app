@@ -2,7 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/shared/ui/screen';
 import { TextField } from '@/shared/ui/text-field';
-import { colors, radius, spacing, type } from '@/shared/ui/theme';
+import { useFieldChain } from '@/shared/ui/use-field-chain';
+import { colors, radius, spacingY, type } from '@/shared/ui/theme';
+import { categoryMessageKey } from '../domain/category-labels';
 import type { ListingField } from '../domain/listing';
 import { primaryPhotoUri } from '../domain/scan-photos';
 import { useScan, useUpdateListing } from '../hooks/capture-context';
@@ -46,22 +48,12 @@ const FIELDS: readonly {
   { field: 'number', label: 'listing.number', autoCapitalize: 'none' },
 ];
 
-const CATEGORY_LABEL = {
-  top: 'capture.category.top',
-  broek: 'capture.category.broek',
-  schoenen: 'capture.category.schoenen',
-  tas: 'capture.category.tas',
-  jas: 'capture.category.jas',
-  rok: 'capture.category.rok',
-  jurk: 'capture.category.jurk',
-  trui_vest: 'capture.category.trui_vest',
-} as const;
-
 /** Website fields for one scan. The photo stays as context; these values are typed in. */
 export function ListingScreen({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
   const item = useScan(itemId);
   const updateListing = useUpdateListing();
+  const chain = useFieldChain(FIELDS.length);
 
   if (item === null) {
     return (
@@ -84,16 +76,17 @@ export function ListingScreen({ itemId }: { itemId: string }) {
       <Text style={styles.recognition}>
         {category.kind === 'known'
           ? t('listing.recognition', {
-              category: t(CATEGORY_LABEL[category.category]),
+              category: t(categoryMessageKey(category.category)),
               score: Math.round(category.score * 100),
             })
           : t('listing.recognitionUnknown')}
       </Text>
       <Text style={styles.section}>{t('listing.section')}</Text>
       <View style={styles.fields}>
-        {FIELDS.map((field) => (
+        {FIELDS.map((field, index) => (
           <TextField
             key={field.field}
+            {...chain.field(index, { multiline: field.multiline === true })}
             label={t(field.label)}
             value={item.listing[field.field]}
             multiline={field.multiline}
@@ -115,6 +108,6 @@ const styles = StyleSheet.create({
   },
   body: { ...type.body, color: colors.textMuted },
   recognition: { ...type.label, color: colors.text },
-  section: { ...type.label, color: colors.text, marginTop: spacing.sm },
-  fields: { gap: spacing.md },
+  section: { ...type.label, color: colors.text, marginTop: spacingY.sm },
+  fields: { gap: spacingY.md },
 });

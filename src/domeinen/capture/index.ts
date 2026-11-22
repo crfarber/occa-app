@@ -13,6 +13,13 @@ export {
   type UncertainField,
 } from './domain/interpret-labels';
 export {
+  CATEGORY_MESSAGE_KEYS,
+  categoryMessageKey,
+  scanSectionMessageKey,
+  type CategoryMessageKey,
+  type ScanSectionMessageKey,
+} from './domain/category-labels';
+export {
   groupScansByCategory,
   SCAN_SECTION_ORDER,
   type GroupableScan,
@@ -48,5 +55,14 @@ export {
   type ListingField,
 } from './domain/listing';
 export type { ImageClassifier } from './service/image-classifier';
+export type { TextRecognizer } from './service/text-recognizer';
+export {
+  addCapturePhoto,
+  canSubmitCaptureDraft,
+  emptyCaptureDraft,
+  MAX_CLOTHING_PHOTOS,
+  setCaptureLabel,
+  type CaptureDraft,
+} from './domain/capture-draft';
 export { createScanStore } from './store/scan-store';
 export type { ScanState, ScanStore, ScannedItem } from './store/scan-store';

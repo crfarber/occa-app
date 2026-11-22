@@ -2,7 +2,7 @@
 
 > Gecontroleerd op: `aa8cfdc` (2026-10-10)
 > Bronnen: `assets/models/`, `capture/platform/rn/custom-category-classifier.tsx`, `domain/category-model-labels.ts`, `training/`, `docs/occa-brief.md`
-> Zie ook: [occa-brief](../occa-brief.md) §4
+> Zie ook: [occa-brief](../occa-brief.md) §4 · [ADR 0021](../decisions/0021-categorie-taxonomie.md) · [categorie-taxonomie](categorie-taxonomie.md) (platform ↔ telefoon)
 
 ## Waarvoor
 
