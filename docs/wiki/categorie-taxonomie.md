@@ -1,6 +1,6 @@
 # Categorie-taxonomie (platform ↔ telefoon)
 
-> Gecontroleerd op: `be46e93`+ (2026-11-22) — TAX-01/02 getest; TAX-03/04 tegen code  
+> Gecontroleerd op: `6238fc4` (2026-11-22) — TAX-01/02 getest; TAX-03/04 tegen code  
 > Bronnen: `submission/domain/category-map.ts`, `platform-categories.ts`, `capture/domain/interpret-labels.ts`, `capture/domain/category-labels.ts`, `inventory/api/shop-item-detail.ts`, `inventory/screens/inventory-item-screen.tsx`, ADR [0021](../decisions/0021-categorie-taxonomie.md), platform `docs/product/categorie-taxonomie.md`  
 > Zie ook: [categorie-model](categorie-model.md) (TFLite), [inboedel](inboedel.md), [kleur-en-labels](kleur-en-labels.md)
 
