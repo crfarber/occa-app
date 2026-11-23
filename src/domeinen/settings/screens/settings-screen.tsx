@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAuthService } from '@/domeinen/auth/ui';
+import { Button } from '@/shared/ui/button';
 import { Screen } from '@/shared/ui/screen';
-import { colors, spacing } from '@/shared/ui/theme';
+import { colors, spacingX, spacingY, type } from '@/shared/ui/theme';
 import { SettingsMenuRow } from '../components/settings-menu-row';
 
 const appVersion = Constants.expoConfig?.version ?? '';
@@ -25,9 +28,20 @@ const MENU_ITEMS: readonly MenuItem[] = [
   },
 ];
 
-/** Language settings and the app version. */
+/** Language settings, sign-out, and the app version. */
 export function SettingsScreen() {
   const { t } = useTranslation();
+  const authService = useAuthService();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const onSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await authService.signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <Screen contentStyle={styles.content}>
@@ -43,6 +57,17 @@ export function SettingsScreen() {
           />
         ))}
       </View>
+
+      <Text style={styles.section}>{t('settings.section.account')}</Text>
+      <View style={styles.signOutWrap}>
+        <Button
+          label={signingOut ? t('feedback.processing.signOut') : t('common.signOut')}
+          variant="danger"
+          loading={signingOut}
+          onPress={() => void onSignOut()}
+        />
+      </View>
+
       <View style={styles.versionWrap}>
         <Text style={styles.version}>{appVersion}</Text>
       </View>
@@ -59,9 +84,9 @@ export function SettingsHeaderButton() {
       accessibilityLabel={t('settings.open')}
       onPress={() => router.push('/settings')}
       style={({ pressed }) => [styles.headerButton, pressed && styles.headerButtonPressed]}
-      hitSlop={spacing.sm}
+      hitSlop={spacingY.sm}
     >
-      <Ionicons name="cog-outline" size={24} color={colors.onBrand} />
+      <Ionicons name="cog-outline" size={24} color={colors.text} />
     </Pressable>
   );
 }
@@ -69,23 +94,25 @@ export function SettingsHeaderButton() {
 const styles = StyleSheet.create({
   content: { padding: 0, gap: 0 },
   section: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.md,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    marginTop: spacingY.xl,
+    marginBottom: spacingY.sm,
+    paddingHorizontal: spacingX.md,
+    ...type.small,
     textTransform: 'uppercase',
     color: colors.textMuted,
   },
   list: { backgroundColor: colors.background },
+  signOutWrap: {
+    paddingHorizontal: spacingX.md,
+    paddingTop: spacingY.sm,
+  },
   versionWrap: {
     flexGrow: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacingY.xl,
   },
-  version: { fontSize: 12, color: colors.textMuted, textAlign: 'center' },
-  headerButton: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  version: { ...type.small, color: colors.textMuted, textAlign: 'center' },
+  headerButton: { paddingHorizontal: spacingX.sm, paddingVertical: spacingY.xs },
   headerButtonPressed: { opacity: 0.6 },
 });

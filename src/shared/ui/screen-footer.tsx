@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from './theme';
+import { colors, spacingX, spacingY } from './theme';
 
 /** Sticky action bar at the bottom of a screen. It owns the bottom safe area. */
 export function ScreenFooter({
@@ -14,7 +14,7 @@ export function ScreenFooter({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.footer, { backgroundColor, paddingBottom: spacing.md + insets.bottom }]}>
+    <View style={[styles.footer, { backgroundColor, paddingBottom: spacingY.md + insets.bottom }]}>
       {children}
     </View>
   );
@@ -22,9 +22,9 @@ export function ScreenFooter({
 
 const styles = StyleSheet.create({
   footer: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    gap: spacing.sm,
+    paddingHorizontal: spacingX.md,
+    paddingTop: spacingY.md,
+    gap: spacingY.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },

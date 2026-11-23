@@ -15,9 +15,40 @@ export function goBackOrReplace<Route>(
   navigation.replace(fallbackRoute);
 }
 
-export const defaultStackHeaderOptions = {
-  headerStyle: { backgroundColor: colors.brand },
+/**
+ * Screens keep their `title` for accessibility and the back-button history menu; only the
+ * header itself stays empty.
+ */
+const baseStackHeaderOptions = {
+  headerTitle: '',
   headerBackButtonDisplayMode: 'minimal',
-  headerTintColor: colors.onBrand,
+  headerTintColor: colors.text,
   headerTitleAlign: 'center',
+  headerShadowVisible: false,
 } as const;
+
+export type StackHeaderLook = 'liquidGlass' | 'blur' | 'solid';
+
+/**
+ * `liquidGlass` / `blur` float over the screen so content can scroll beneath the chrome;
+ * `solid` keeps an opaque canvas bar. Android blur background is attached separately.
+ */
+export function stackHeaderOptions(look: StackHeaderLook) {
+  switch (look) {
+    case 'liquidGlass':
+      // Native scroll-edge glass; an extra blur would double up.
+      return { ...baseStackHeaderOptions, headerTransparent: true };
+    case 'blur':
+      return {
+        ...baseStackHeaderOptions,
+        headerTransparent: true,
+        headerBlurEffect: 'systemThinMaterialLight',
+      } as const;
+    case 'solid':
+      return {
+        ...baseStackHeaderOptions,
+        headerTransparent: false,
+        headerStyle: { backgroundColor: colors.canvas },
+      };
+  }
+}

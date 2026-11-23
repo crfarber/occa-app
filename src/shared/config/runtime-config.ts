@@ -4,7 +4,7 @@ import { err, ok, type Result } from '@/shared/result';
 export const ENVIRONMENTS = ['internal', 'acceptance', 'production'] as const;
 export type Environment = (typeof ENVIRONMENTS)[number];
 
-export const AUTH_PROVIDERS = ['demo', 'azure-ad'] as const;
+export const AUTH_PROVIDERS = ['demo', 'azure-ad', 'supabase'] as const;
 export type AuthProviderName = (typeof AUTH_PROVIDERS)[number];
 
 export type AzureAdConfig = {
@@ -15,8 +15,16 @@ export type AzureAdConfig = {
   apiScopes: readonly string[];
 };
 
+export type SupabaseAuthConfig = {
+  url: string;
+  anonKey: string;
+};
+
 /** Which sign-in this build uses, with what that method needs. */
-export type AuthConfig = { provider: 'demo' } | { provider: 'azure-ad'; azureAd: AzureAdConfig };
+export type AuthConfig =
+  | { provider: 'demo' }
+  | { provider: 'azure-ad'; azureAd: AzureAdConfig }
+  | { provider: 'supabase'; supabase: SupabaseAuthConfig };
 
 export type RuntimeConfig = {
   /** Null until a backend exists. A request then fails instead of calling a made-up host. */
@@ -34,7 +42,9 @@ export type RawEnv = Partial<
     | 'EXPO_PUBLIC_AZURE_AD_TENANT_ID'
     | 'EXPO_PUBLIC_AZURE_AD_CLIENT_ID'
     | 'EXPO_PUBLIC_AZURE_AD_REDIRECT_URL'
-    | 'EXPO_PUBLIC_AZURE_AD_SCOPES',
+    | 'EXPO_PUBLIC_AZURE_AD_SCOPES'
+    | 'EXPO_PUBLIC_SUPABASE_URL'
+    | 'EXPO_PUBLIC_SUPABASE_ANON_KEY',
     string | undefined
   >
 >;
@@ -52,6 +62,11 @@ const envSchema = z.object({
   EXPO_PUBLIC_AZURE_AD_CLIENT_ID: optionalString,
   EXPO_PUBLIC_AZURE_AD_REDIRECT_URL: optionalString,
   EXPO_PUBLIC_AZURE_AD_SCOPES: optionalString,
+  EXPO_PUBLIC_SUPABASE_URL: z
+    .url()
+    .transform((value) => value.replace(/\/+$/, ''))
+    .optional(),
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: optionalString,
 });
 
 /** `.env` files produce empty strings for unset variables; treat them as missing. */
@@ -86,6 +101,20 @@ export function parseRuntimeConfig(env: RawEnv): Result<RuntimeConfig, string[]>
       ]);
     }
     return ok({ ...base, auth: { provider: 'demo' } });
+  }
+
+  if (data.EXPO_PUBLIC_AUTH_PROVIDER === 'supabase') {
+    const url = data.EXPO_PUBLIC_SUPABASE_URL;
+    const anonKey = data.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    if (url === undefined || anonKey === undefined) {
+      return err([
+        'EXPO_PUBLIC_SUPABASE_*: supabase sign-in needs the project URL and the anon key',
+      ]);
+    }
+    return ok({
+      ...base,
+      auth: { provider: 'supabase', supabase: { url, anonKey } },
+    });
   }
 
   const tenantId = data.EXPO_PUBLIC_AZURE_AD_TENANT_ID;

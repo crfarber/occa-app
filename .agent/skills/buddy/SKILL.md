@@ -45,16 +45,16 @@ anders of nieuws doet?**
 Doorloop daarna deze onderwerpen, **één per beurt**, sla over wat al duidelijk
 is:
 
-| Onderwerp        | Vraag aan de gebruiker (voorbeeld)                                      |
-| ---------------- | ----------------------------------------------------------------------- |
-| Doel             | Wat moet er klaar zijn als dit af is?                                   |
-| Wie              | Wie gebruikt dit: medewerker in de winkel, of iemand anders?            |
-| Startpunt        | Waar in de app begint dit (welk scherm of moment)?                      |
-| Stappen          | Wat gebeurt er, stap voor stap, vanaf dat moment?                       |
-| Succes           | Hoe weet je dat het goed werkt? Wat zie of voel je dan?                 |
-| Fouten           | Wat mag er misgaan, en wat moet de app dan tonen of doen?               |
-| Buiten scope     | Wat hoort er níet bij deze keer?                                        |
-| Bestaand gedrag  | Mag iets wat nu al werkt hierdoor veranderen? Zo ja, wat?               |
+| Onderwerp       | Vraag aan de gebruiker (voorbeeld)                           |
+| --------------- | ------------------------------------------------------------ |
+| Doel            | Wat moet er klaar zijn als dit af is?                        |
+| Wie             | Wie gebruikt dit: medewerker in de winkel, of iemand anders? |
+| Startpunt       | Waar in de app begint dit (welk scherm of moment)?           |
+| Stappen         | Wat gebeurt er, stap voor stap, vanaf dat moment?            |
+| Succes          | Hoe weet je dat het goed werkt? Wat zie of voel je dan?      |
+| Fouten          | Wat mag er misgaan, en wat moet de app dan tonen of doen?    |
+| Buiten scope    | Wat hoort er níet bij deze keer?                             |
+| Bestaand gedrag | Mag iets wat nu al werkt hierdoor veranderen? Zo ja, wat?    |
 
 Als iets al in `docs/occa-brief.md`, `docs/wiki/` of de code staat, zeg dat in
 één zin en vraag of dat de bedoeling blijft. Verzin geen gedrag.
@@ -85,9 +85,9 @@ duidelijke vraag):
 
 > De specificatie hierboven is klaar.
 >
-> 1. **Ja, voer uit** — bouw dit volgens de Occa-regels  
-> 2. **Nog aanpassen** — zeg wat er anders moet  
-> 3. **Alleen bewaren** — sla de spec op, bouw nog niets  
+> 1. **Ja, voer uit** — bouw dit volgens de Occa-regels
+> 2. **Nog aanpassen** — zeg wat er anders moet
+> 3. **Alleen bewaren** — sla de spec op, bouw nog niets
 >
 > Wat wil je?
 

@@ -47,14 +47,30 @@ De naam `domeinen` volgt de web-boilerplate (`src/domeinen/`), zodat projecten v
 
 ## 4. State
 
-| Soort data                            | Waar                                                |
-| ------------------------------------- | --------------------------------------------------- |
-| Server-data                           | TanStack Query (`hooks/`), sleutels per domein      |
-| UI-status die meerdere schermen delen | Zustand in `store/`                                 |
-| Sessie (tokens)                       | `TokenProvider` + beveiligde opslag, nergens anders |
-| Voorkeuren zonder geheimen            | `KeyValueStore`-poort                               |
+| Soort data                              | Waar                                                   |
+| --------------------------------------- | ------------------------------------------------------ |
+| Server-data                             | TanStack Query (`hooks/`), sleutels per domein         |
+| UI-status die meerdere schermen delen   | Zustand in `store/`                                    |
+| Lokale form- of fasestatus (één scherm) | `domain/*.action.ts` (puur) + `useReducer` in `hooks/` |
+| Sessie (tokens)                         | `TokenProvider` + beveiligde opslag, nergens anders    |
+| Voorkeuren zonder geheimen              | `KeyValueStore`-poort                                  |
 
 Zustand-stores worden met een fabriek gemaakt (`createSessionStore()`), niet als module-global, en bevatten nooit tokens. Dezelfde data in Zustand, een Context én opslag dupliceren is verboden.
+
+### Lokale UI-state met `useReducer`
+
+Ephemere form- of faselogica hoort niet als eindeloze `useState`s in het scherm. Patroon (zoals `form-chain.ts` + `use-field-chain.ts`):
+
+```text
+domain/<feature>.action.ts   // state, Action-union, reducer, action creators — geen React
+hooks/use-<feature>.ts       // useReducer; async (save) wrapt dispatch, geen I/O in de reducer
+screens/...                  // alleen dispatch + render
+```
+
+- Drempel: **≥3 gerelateerde velden**, een **fasemachine**, of **error + draft samen**. Eén boolean (sheet open, layout) blijft `useState`.
+- Geen server-entities als bron van waarheid in de reducer; hydrate vanuit Query, PATCH via mutatie.
+- Geen Zustand voor drafts die één scherm lang leven.
+- Actions: `const` object + union type (geen `enum`).
 
 ## 5. API
 
@@ -68,7 +84,7 @@ Zustand-stores worden met een fabriek gemaakt (`createSessionStore()`), niet als
 
 - Alleen `TokenProvider` leest en schrijft tokens; de rest vraagt `getAccessToken()` of `refreshNow()`.
 - Een tijdelijke fout (geen netwerk, 5xx) houdt de sessie in stand; alleen een definitieve weigering (`invalid_grant`, 401/403 op de refresh) logt uit. Zie `refresh-policy.ts`.
-- De inlogmethode komt uit `EXPO_PUBLIC_AUTH_PROVIDER` (`demo` of `azure-ad`, zie [ADR 0017](decisions/0017-inlogmethode-per-build.md)). `demo` mag niet in productie.
+- De inlogmethode komt uit `EXPO_PUBLIC_AUTH_PROVIDER` (`supabase` product, of `demo` / `azure-ad`, zie [ADR 0017](decisions/0017-inlogmethode-per-build.md)). `demo` mag niet in productie.
 - Geheimen staan in de Keychain/Keystore via `SecretStore`; grote waarden worden verdeeld over stukken (`chunked-store.ts`).
 - `EXPO_PUBLIC_*` wordt in de app gebakken en is dus **niet geheim**. Echte geheimen horen in de backend.
 - Logdata gaat door `redact` (tokens, wachtwoorden, codes verborgen; telefoon en e-mail gemaskeerd).
@@ -80,8 +96,10 @@ Alle zichtbare tekst staat in `src/shared/i18n/resources.ts`, Nederlands als bro
 ## 8. Stijl en navigatie
 
 - `StyleSheet.create` met tokens uit `src/shared/ui/theme.ts`, geen losse kleuren of maten in schermen. Zie [ADR 0007](decisions/0007-styling.md).
+- Maatgrid: breedtes per 5 (`spacingX`), hoogtes 2 of per 4 (`spacingY`, line-heights, `size`). Een uniforme `padding`/`margin` splits je per as, een `gap` volgt de richting van de container, vierkanten krijgen een `size`-token. `size-grid.test.ts` controleert het; zie [ADR 0020](decisions/0020-maatgrid.md).
 - Iconen uit `@expo/vector-icons` (Ionicons). Een eigen iconenset komt in `src/shared/ui/icons/`.
-- Expo Router met dunne routes. Wie ingelogd is bepaalt `Stack.Protected` op basis van de sessiestatus; er wordt niet imperatief genavigeerd voor inloggen of uitloggen.
+- Expo Router met dunne routes. Wie ingelogd is bepaalt de gate in `_layout` op basis van de sessiestatus; er wordt niet imperatief genavigeerd voor inloggen of uitloggen.
+- Formulieren staan in `Screen` (keyboard-aware scroll + sticky footer). Velden koppelen met `useFieldChain` zodat "Volgende" naar het volgende veld gaat. Geen losse `KeyboardAvoidingView` per scherm; zie [ADR 0019](decisions/0019-toetsenbord-en-formulieren.md).
 - Lijsten: `SectionList`/`FlatList` met stabiele `keyExtractor`, geen inline zware berekeningen (gebruik `useMemo` of een domeinfunctie).
 
 ## 9. Testen
@@ -100,13 +118,13 @@ Alle zichtbare tekst staat in `src/shared/i18n/resources.ts`, Nederlands als bro
 
 ## Verschil met de web-boilerplate
 
-| Web-boilerplate        | Deze boilerplate                                          |
-| ---------------------- | --------------------------------------------------------- |
-| Vite, TanStack Router  | Expo (prebuild/EAS), Expo Router                          |
-| Tailwind/shadcn        | `StyleSheet` met tokens                                   |
-| `VITE_AUTH_PROVIDER`   | `EXPO_PUBLIC_AUTH_PROVIDER` (`demo` of `azure-ad`)        |
-| MSAL in de browser     | Azure AD via een native browser-sheet, tokens in Keychain |
-| `sessionStorage`       | `SecretStore` (Keychain/Keystore) en `KeyValueStore`      |
-| Orval-mutator          | Eigen `HttpClient` + zod (zie ADR 0004)                   |
-| Storybook              | later: component-tests (zie ADR 0003)                     |
-| `pages/` in een domein | `screens/` (routes staan in `src/app/`)                   |
+| Web-boilerplate        | Deze boilerplate                                             |
+| ---------------------- | ------------------------------------------------------------ |
+| Vite, TanStack Router  | Expo (prebuild/EAS), Expo Router                             |
+| Tailwind/shadcn        | `StyleSheet` met tokens                                      |
+| `VITE_AUTH_PROVIDER`   | `EXPO_PUBLIC_AUTH_PROVIDER` (`supabase`, `demo`, `azure-ad`) |
+| MSAL in de browser     | Azure AD via een native browser-sheet, tokens in Keychain    |
+| `sessionStorage`       | `SecretStore` (Keychain/Keystore) en `KeyValueStore`         |
+| Orval-mutator          | Eigen `HttpClient` + zod (zie ADR 0004)                      |
+| Storybook              | webcatalog van `src/shared/ui` (zie ADR 0018)                |
+| `pages/` in een domein | `screens/` (routes staan in `src/app/`)                      |

@@ -8,7 +8,10 @@ import {
   CategoryModelProvider,
   useCustomCategoryClassifier,
 } from '@/domeinen/capture/ui';
+import { InventoryProvider } from '@/domeinen/inventory/ui';
 import { SettingsProvider } from '@/domeinen/settings/ui';
+import { ShopsProvider } from '@/domeinen/shops/ui';
+import { SubmissionProvider } from '@/domeinen/submission/ui';
 import { StatusOverlayProvider } from '@/shared/ui/status-overlay-host';
 import { FeedbackProvider } from '@/shared/ui/toast-host';
 import { SchedulerProvider } from '@/shared/ui/scheduler-context';
@@ -20,6 +23,7 @@ function useForegroundRefresh(container: Container): void {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         void container.lifecycle.onForeground();
+        void container.submission.flush();
       }
     });
     return () => subscription.remove();
@@ -42,6 +46,7 @@ function CaptureWithCategoryModel({
     () => ({
       imageClassifier,
       imageColorSampler: container.imageColorSampler,
+      textRecognizer: container.textRecognizer,
       scanStore: container.scanStore,
     }),
     [container, imageClassifier],
@@ -68,6 +73,14 @@ export function AppProviders({
     [container],
   );
   const settings = useMemo(() => ({ languageSettings: container.languageSettings }), [container]);
+  const shops = useMemo(
+    () => ({ shopsApi: container.shopsApi, selectedStore: container.selectedStore }),
+    [container],
+  );
+  const inventory = useMemo(
+    () => ({ itemsApi: container.inventoryApi, itemDetailApi: container.itemDetailApi }),
+    [container],
+  );
 
   return (
     <QueryClientProvider client={container.queryClient}>
@@ -76,11 +89,17 @@ export function AppProviders({
           <StatusOverlayProvider value={container.statusOverlay}>
             <SchedulerProvider value={container.scheduler}>
               <AuthProvider value={auth}>
-                <CategoryModelProvider>
-                  <CaptureWithCategoryModel container={container}>
-                    <SettingsProvider value={settings}>{children}</SettingsProvider>
-                  </CaptureWithCategoryModel>
-                </CategoryModelProvider>
+                <ShopsProvider value={shops}>
+                  <InventoryProvider value={inventory}>
+                    <SubmissionProvider value={container.submission}>
+                      <CategoryModelProvider>
+                        <CaptureWithCategoryModel container={container}>
+                          <SettingsProvider value={settings}>{children}</SettingsProvider>
+                        </CaptureWithCategoryModel>
+                      </CategoryModelProvider>
+                    </SubmissionProvider>
+                  </InventoryProvider>
+                </ShopsProvider>
               </AuthProvider>
             </SchedulerProvider>
           </StatusOverlayProvider>

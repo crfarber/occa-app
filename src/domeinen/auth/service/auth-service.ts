@@ -5,13 +5,19 @@ import type { LoginFailure } from '../domain/login-failures';
 import type { AuthMethod } from '../domain/session';
 import type { Refresher, TokenProvider, TokenSet } from './token-provider';
 
+/** E-mail and password for providers that ask for them (`supabase`). Ignored by demo and azure-ad. */
+export type SignInCredentials = {
+  email: string;
+  password: string;
+};
+
 /**
  * One way to sign in, picked per build (`EXPO_PUBLIC_AUTH_PROVIDER`). The demo one is pure
  * (`demo-authenticator.ts`); a real one usually needs a native module and lives in `platform/rn`.
  */
 export type Authenticator = {
   readonly method: AuthMethod;
-  signIn(): Promise<Result<Required<TokenSet>, LoginFailure>>;
+  signIn(credentials?: SignInCredentials): Promise<Result<Required<TokenSet>, LoginFailure>>;
   /** MUST throw `AuthExpiredError` when the refresh token is definitively refused. */
   refresh(refreshToken: string): Promise<TokenSet>;
 };
@@ -32,7 +38,7 @@ export function createRefresher(authenticator: Authenticator): Refresher {
 export type AuthService = {
   /** Which sign-in this build uses, so the login screen can say so. */
   readonly method: AuthMethod;
-  signIn(): Promise<Result<void, LoginFailure>>;
+  signIn(credentials?: SignInCredentials): Promise<Result<void, LoginFailure>>;
   signOut(): Promise<void>;
 };
 
@@ -50,8 +56,8 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
   return {
     method: authenticator.method,
 
-    async signIn() {
-      const result = await authenticator.signIn();
+    async signIn(credentials) {
+      const result = await authenticator.signIn(credentials);
       if (!result.ok) {
         return result;
       }

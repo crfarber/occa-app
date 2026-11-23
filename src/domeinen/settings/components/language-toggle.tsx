@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LANGUAGES, type Language } from '@/shared/i18n/resources';
-import { colors, radius, spacing } from '@/shared/ui/theme';
+import { colors, radius, spacingX, spacingY, type } from '@/shared/ui/theme';
 
 const NAME_KEY = {
   nl: 'settings.language.nl',
@@ -34,7 +34,7 @@ export function LanguageToggle({
                   onChange(language);
                 }
               }}
-              hitSlop={spacing.xs}
+              hitSlop={spacingY.xs}
               style={({ pressed }) => [
                 styles.segment,
                 selected && styles.segmentSelected,
@@ -57,32 +57,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: spacingX.md,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.md,
     borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  title: { fontSize: 17, fontWeight: '700', color: colors.text },
+  title: { ...type.header, color: colors.text },
   track: {
     flexDirection: 'row',
-    padding: 2,
+    paddingHorizontal: spacingX.xs,
+    paddingVertical: spacingY.xxs,
     borderRadius: radius.md,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
   },
   segment: {
-    minWidth: 56,
+    minWidth: spacingX.xxxl + spacingX.sm,
     minHeight: 40,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacingX.md,
     borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   segmentSelected: { backgroundColor: colors.brand },
   segmentPressed: { opacity: 0.6 },
-  label: { fontSize: 15, fontWeight: '600', color: colors.textMuted },
+  label: { ...type.label, color: colors.textMuted },
   labelSelected: { color: colors.onBrand },
 });

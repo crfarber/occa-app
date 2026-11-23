@@ -1,4 +1,5 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
+import palette from './src/shared/ui/remi-palette.json';
 
 /**
  * Project identity. A new project changes these values (and the colors in `src/shared/ui/theme.ts`
@@ -11,8 +12,8 @@ const APP = {
   id: 'com.crfarber.occa',
   scheme: 'occa',
   version: '1.0.0',
-  /** Same as `colors.brand` in the theme, so the native splash and the JS splash match. */
-  brandColor: '#1F6FEB',
+  splashColor: palette.remiYellow,
+  brandColor: palette.plum,
 } as const;
 
 /**
@@ -81,6 +82,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      'expo-font',
       'expo-secure-store',
       'expo-sqlite',
       'expo-dev-client',
@@ -108,12 +110,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // pristine template class line, and each plugin's mod runs in the opposite of this array's
       // order.
       ['expo-build-properties', { ios: { enableSceneSupport: true } }],
+      // Apple Silicon simulator + Google ML Kit: clear EXCLUDED_ARCHS and skip linking
+      // ML Kit on iphonesimulator (device-only arm64). See plugins/with-mlkit-simulator-arch.js.
+      './plugins/with-mlkit-simulator-arch.js',
       [
         'expo-splash-screen',
         {
-          backgroundColor: APP.brandColor,
-          image: './assets/images/splash-icon.png',
-          imageWidth: 120,
+          backgroundColor: APP.splashColor,
         },
       ],
     ],

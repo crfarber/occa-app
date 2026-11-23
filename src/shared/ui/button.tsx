@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
-import { colors, radius, spacing } from './theme';
+import { colors, fontFamily, radius, size, spacingX, spacingY, text } from './theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'action' | 'danger' | 'light' | 'ghost' | 'text';
 
@@ -98,24 +98,24 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 48,
+    minHeight: size.touchMin,
     borderRadius: radius.xxl,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacingX.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primary: { backgroundColor: colors.brand },
-  secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
+  secondary: { backgroundColor: colors.secondaryButton },
   danger: { backgroundColor: colors.danger },
   ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.text },
   action: { backgroundColor: colors.action },
   light: {
     backgroundColor: colors.buttonLight,
     borderRadius: radius.xxl,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacingY.lg,
   },
   dimmed: { opacity: 0.6 },
-  label: { color: colors.onBrand, fontSize: 16, fontWeight: '600' },
+  label: { ...text.labelMd, fontFamily: fontFamily.sansRN[500], color: colors.onBrand },
   secondaryLabel: { color: colors.text },
   dangerLabel: { color: colors.background },
   actionLabel: { color: colors.onAction, fontWeight: '700' },
@@ -133,15 +133,15 @@ const styles = StyleSheet.create({
   textButtonDimmed: { opacity: 0.6 },
   textButtonLabel: {
     color: colors.action,
-    fontSize: 16,
-    fontWeight: '600',
+    ...text.labelMd,
+    fontFamily: fontFamily.sansRN[500],
     paddingHorizontal: 0,
     paddingVertical: 0,
   },
   textButtonLabelUnderline: {
     color: colors.action,
-    fontSize: 16,
-    fontWeight: '600',
+    ...text.labelMd,
+    fontFamily: fontFamily.sansRN[500],
     paddingHorizontal: 0,
     paddingVertical: 0,
     textDecorationLine: 'underline',

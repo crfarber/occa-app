@@ -1,8 +1,8 @@
 # Occa
 
-Mobiele app voor vintage kledingwinkels: scannen, on-device herkenning en lokale productdrafts.
-Gebouwd op Expo (SDK 57) met een gelaagde domeinstructuur, getypeerde i18n (NL/EN), demo- of
-Azure AD-login, en tooling (oxlint, Prettier, Vitest, Husky, CI).
+Mobiele app voor vintage kledingwinkels: scannen, on-device herkenning, Inboedel via shop-API.
+Gebouwd op Expo (SDK 57) met een gelaagde domeinstructuur, getypeerde i18n (NL/EN), Supabase-
+login (demo/Azure AD als optie), en tooling (oxlint, Prettier, Vitest, Husky, CI).
 
 Productbeschrijving: [docs/occa-brief.md](docs/occa-brief.md). Van scratch opzetten:
 [docs/handleiding-starten.md](docs/handleiding-starten.md).
@@ -11,7 +11,7 @@ Productbeschrijving: [docs/occa-brief.md](docs/occa-brief.md). Van scratch opzet
 
 - Expo SDK 57 met prebuild (CNG) en EAS, Expo Router, React Native 0.86, React 19 (met React Compiler)
 - TanStack Query (server-data) en Zustand (client-state), zod op de API-grens
-- Inloggen: `demo` (standaard, geen backend nodig) of Azure AD via `react-native-app-auth`
+- Inloggen: Supabase e-mail/wachtwoord (product); `demo` of Azure AD optioneel per build
 - i18next met getypeerde sleutels, `StyleSheet` met design-tokens, Ionicons
 - Vitest in Node, oxlint, Prettier, Husky + lint-staged, GitHub Actions
 
@@ -24,7 +24,7 @@ dataset-URL’s): [docs/handleiding-starten.md](docs/handleiding-starten.md).
 
 ```bash
 pnpm install
-# Maak .env.local (demo-login); zie handleiding-starten.md §3 als .env.example ontbreekt
+cp .env.example .env.local     # vul supabase-keys in; zie handleiding-starten.md §3
 pnpm ios                       # of: pnpm android (bouwt de native app en start Metro)
 pnpm start                     # daarna alleen Metro starten (dev client)
 ```
@@ -36,38 +36,42 @@ Zonder geldige configuratie stopt de app bij het opstarten met een duidelijke me
 1. **Identiteit:** pas `APP` bovenin [app.config.ts](app.config.ts) aan (naam, slug, bundle-ID, scheme, versie, merkkleur) en `name`/`productName` in `package.json`.
 2. **Uiterlijk:** zet de kleuren in [src/shared/ui/theme.ts](src/shared/ui/theme.ts) en vervang `assets/images/icon.png`, `adaptive-icon.png` en `splash-icon.png`.
 3. **Teksten:** pas de teksten in [src/shared/i18n/resources.ts](src/shared/i18n/resources.ts) aan (o.a. `home` en `login.subtitle`).
-4. **Backend:** laat `EXPO_PUBLIC_API_BASE_URL` leeg tot er een API is. Zet hem in `.env.local` en per EAS-profiel zodra die er is.
-5. **Inloggen:** blijf op `demo` tot de app-registratie er is; schakel dan over op Azure AD ([ADR 0012](docs/decisions/0012-azure-ad-inloggen.md)). `demo` wordt geweigerd in productie.
+4. **Backend:** zet `EXPO_PUBLIC_API_BASE_URL` op de partner (lokaal `http://localhost:3001`) en per EAS-profiel.
+5. **Inloggen:** product = `supabase` ([handleiding §3](docs/handleiding-starten.md)); `demo` alleen zonder backend; Azure AD optioneel ([ADR 0012](docs/decisions/0012-azure-ad-inloggen.md)). `demo` wordt geweigerd in productie.
 6. **EAS:** `eas init` en zet het project-ID in `EXPO_PUBLIC_EAS_PROJECT_ID`.
 7. **Eerste domein:** vervang `home` door je eerste echte domein, zie [docs/conventions.md](docs/conventions.md#een-nieuw-domein-toevoegen).
 8. Verwijder dit hoofdstuk uit de README en beschrijf het project.
 
 ## Configuratie
 
-| Variabele                    | Betekenis                                                     |
-| ---------------------------- | ------------------------------------------------------------- |
-| `APP_VARIANT`                | `internal` / `acceptance` / `production`, gezet in `eas.json` |
-| `EXPO_PUBLIC_API_BASE_URL`   | basis-URL van de API (optioneel; leeg = geen backend)         |
-| `EXPO_PUBLIC_ENVIRONMENT`    | `internal` / `acceptance` / `production`                      |
-| `EXPO_PUBLIC_AUTH_PROVIDER`  | `demo` (standaard) of `azure-ad`                              |
-| `EXPO_PUBLIC_AZURE_AD_*`     | tenant, client, redirect-URL en API-scopes bij `azure-ad`     |
-| `EXPO_PUBLIC_EAS_PROJECT_ID` | EAS-project, alleen voor EAS Build/Update                     |
+| Variabele                       | Betekenis                                                     |
+| ------------------------------- | ------------------------------------------------------------- |
+| `APP_VARIANT`                   | `internal` / `acceptance` / `production`, gezet in `eas.json` |
+| `EXPO_PUBLIC_API_BASE_URL`      | basis-URL van de shop-API (partner; leeg = geen backend)      |
+| `EXPO_PUBLIC_ENVIRONMENT`       | `internal` / `acceptance` / `production`                      |
+| `EXPO_PUBLIC_AUTH_PROVIDER`     | `supabase` (product), `demo`, of `azure-ad`                   |
+| `EXPO_PUBLIC_SUPABASE_URL`      | Supabase-project-URL bij `supabase`                           |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | anon/public key bij `supabase` (nooit service_role)           |
+| `EXPO_PUBLIC_AZURE_AD_*`        | tenant, client, redirect-URL en API-scopes bij `azure-ad`     |
+| `EXPO_PUBLIC_EAS_PROJECT_ID`    | EAS-project, alleen voor EAS Build/Update                     |
 
 Zie [.env.example](.env.example). `EXPO_PUBLIC_*` wordt in de app gebakken en is niet geheim.
 
 ## Scripts
 
-| Script                          | Doet                                                        |
-| ------------------------------- | ----------------------------------------------------------- |
-| `pnpm run check`                | formatteren controleren, lint (oxlint) en typecheck         |
-| `pnpm test`                     | alle unit- en integratietests (Vitest, in Node, ~1 seconde) |
-| `pnpm test:coverage`            | tests met coverage-drempels (90% regels, 85% branches)      |
-| `pnpm run ci`                   | `check` + `test:coverage`: wat CI en `pre-push` draaien     |
-| `pnpm format` / `pnpm lint:fix` | automatisch herstellen                                      |
-| `pnpm prebuild`                 | native projecten opnieuw genereren (`ios/` en `android/`)   |
-| `pnpm run doctor`               | Expo-configuratie controleren                               |
+| Script                          | Doet                                                               |
+| ------------------------------- | ------------------------------------------------------------------ |
+| `pnpm run check`                | formatteren controleren, lint (oxlint) en typecheck                |
+| `pnpm test`                     | alle unit- en integratietests (Vitest, in Node, ~1 seconde)        |
+| `pnpm test:coverage`            | tests met coverage-drempels (90% regels, 85% branches)             |
+| `pnpm run ci`                   | `check` + `test:coverage`: wat CI en `pre-push` draaien            |
+| `pnpm format` / `pnpm lint:fix` | automatisch herstellen                                             |
+| `pnpm prebuild`                 | native projecten opnieuw genereren (`ios/` en `android/`)          |
+| `pnpm run doctor`               | Expo-configuratie controleren                                      |
+| `pnpm run storybook`            | UI-catalogus in de browser (React Native Web)                      |
+| `pnpm run build-storybook`      | statische catalogus naar `storybook-static/`                       |
 | `pnpm training`                 | Dataset-zip downloaden, TFLite trainen, sync naar `assets/models/` |
-| `pnpm training -- <zip-url>`    | Zelfde met een eigen dataset-URL                            |
+| `pnpm training -- <zip-url>`    | Zelfde met een eigen dataset-URL                                   |
 
 Een wijziging is **klaar** als `pnpm run ci` slaagt en de app bundelt (`pnpm exec expo export --platform android`, draait ook in CI).
 

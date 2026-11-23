@@ -3,7 +3,7 @@ import { createContext, useContext, type ReactNode } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ToastQueue, ToastTone } from '@/shared/feedback/toast-queue';
-import { colors, radius, spacing } from './theme';
+import { colors, radius, size, spacingX, spacingY, type } from './theme';
 
 const FeedbackContext = createContext<ToastQueue | null>(null);
 
@@ -44,7 +44,7 @@ export function ToastHost() {
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.host, { paddingTop: insets.top + spacing.sm }]}
+      style={[styles.host, { paddingTop: insets.top + spacingY.sm }]}
       onLayout={() => {
         AccessibilityInfo.announceForAccessibility(toast.message);
       }}
@@ -68,17 +68,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10000,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacingX.md,
     alignItems: 'center',
   },
   toast: {
-    minHeight: 48,
+    minHeight: size.touchMin,
     maxWidth: 480,
     width: '100%',
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.sm,
     justifyContent: 'center',
   },
-  message: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  message: { ...type.labelMd, textAlign: 'center' },
 });

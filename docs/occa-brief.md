@@ -30,23 +30,25 @@ Belangrijkste scherm: de controle-popup. Daar zit de snelheidswinst.
 
 ## 3. Architectuur
 
+Het platformplaatje (API, database, opslag, AI-verwerking, omgevingen) staat op één plek: `techniek.md` in de Drive-map Occa/Techniek (repo-kopie: [techniek.md](techniek.md) en platform `docs/product/techniek.md`). Kort, voor deze app:
+
 ```
 Expo app (dev build)
   ├─ camera / foto's
   ├─ op toestel: categorie (TFLite via ML Kit), OCR label, label-parsing, foto verkleinen
   ├─ lokale wachtrij (blijft werken bij slechte verbinding / app op achtergrond)
-  └─ upload ──► .NET API
-                  ├─ foto's naar Blob Storage
-                  ├─ bericht op queue
-                  └─ worker ──► Azure AI Foundry (vision-model, JSON-schema)
-                                  └─ resultaat in database ──► app (poll / push) ──► status-icoon
+  └─ upload ──► Next.js /api/v1/shop (partner, Vercel)
+                  ├─ foto's via signed URL naar Supabase Storage
+                  ├─ concept + fototaak in Supabase (Postgres)
+                  └─ concept-worker ──► uitknippen, kleur, korte omschrijving (zonder Mistral)
+                                  └─ Mistral als tweede stap ──► app leest de status
 ```
 
 Regels:
 
-- **De app roept nooit zelf het AI-model aan.** Geen API-keys in de app. App → eigen backend → Foundry.
-- De backend antwoordt direct "ontvangen"; verwerking gebeurt asynchroon via een queue.
-- Hosting-voorkeur: Azure (Container Apps of App Service voor de API, Functions/worker, Blob Storage, Azure SQL free tier, Foundry). Supabase is het alternatief; nog niet definitief besloten.
+- **De app roept nooit zelf een AI-model aan.** Geen API-keys in de app. App → eigen API → worker of Mistral.
+- De API antwoordt direct; verwerking gebeurt op de achtergrond via een wachtrij.
+- Hosting: Vercel (Next.js), Supabase (EU), de concept-worker als Docker-image op GitHub Actions. Omgevingen: lokaal, test, acceptatie, productie (zie `techniek.md`, hoofdstuk Omgevingen).
 
 ## 4. Wat op de telefoon gebeurt (vóór de cloud)
 
@@ -86,15 +88,13 @@ Alles wat de telefoon vindt, gaat als **hint** mee naar de cloud, met de bron er
   - **Risico:** de huidige versies hangen af van verschillende versies van `@infinitered/react-native-mlkit-core` (5.0.0 vs 3.1.0). Controleer met `npx expo-doctor` en een native build of dit botst. Alternatief voor OCR: een ander ML Kit OCR-pakket.
 - Gebruik `npx expo install` voor pakketten, zodat versies bij de Expo SDK passen.
 
-## 5. Het cloudmodel (Azure AI Foundry)
+## 5. Het cloudmodel (Mistral, via het platform)
 
-- Eén call per item. Geen agent met tools nodig voor de POC.
-- Vision-model dat afbeeldingen + **structured outputs** (JSON-schema, `strict: true`) ondersteunt. Begin met een klein ("mini") model, vergelijk met een groter.
-- Deployment bij voorkeur **Data Zone (EU)**.
-- Systeemprompt: `ai/instructions.md` (rol, werkwijze, harde regels, toon; `{{SHOP_STYLE}}` per winkel).
-- Antwoordschema: `ai/schema.json`. In strict mode is elk veld verplicht; "onbekend" = `null`.
-- Invoer per call: verkleinde foto's (bij voorkeur 2–3, max. 5), OCR-tekst, hints van de telefoon, handmatig ingevulde velden.
-- Kosten indicatief: €0,003–0,005 per item (klein model), €0,02–0,03 (groot model).
+Het platform gebruikt Mistral (EU) voor merk, materiaal, conditie en omschrijving; de huidige kosten en instellingen staan in `techniek.md` en de unit economics in Drive. Het voorstel is dat een artikel uit de app eerst een concept zonder Mistral wordt en Mistral een tweede stap is (`techniek.md`, "Concept zonder Mistral").
+
+- Invoer per call: verkleinde of bijgesneden foto's, OCR-tekst, hints van de telefoon, handmatig ingevulde velden.
+- "Onbekend" = `null`. Liever leeg dan verzonnen.
+- `ai/instructions.md` en `ai/schema.json` in deze repo zijn de eerdere opzet uit de POC; het schema dat het platform gebruikt, is leidend.
 
 Het schema is de bron van waarheid voor de app-types, de database en de webshop-mapping. Houd ze gelijk (bij voorkeur types genereren uit het schema).
 
@@ -119,7 +119,7 @@ Photo
 ## 7. Foto's en opslag
 
 - Per item 1–5 foto's voor analyse; daarvan worden er ~2 bewaard voor de webshop.
-- Analysefoto's die niet voor de webshop zijn: **na 24 uur verwijderen** (Azure Blob lifecycle-regel "delete after 1 day" op een aparte container).
+- Analysefoto's die niet voor de webshop zijn: **na 24 uur verwijderen** (in Supabase Storage nog in te richten; zie `techniek.md`).
 - Webshopfoto's: ~0,6 MB per item. Als de webshop de foto's zelf host, kunnen ook die na export weg.
 
 ## 8. Niet doen
@@ -132,7 +132,7 @@ Photo
 
 ## 9. Fasering
 
-1. **AI-test zonder app:** 20–30 echte vintage items door Foundry (playground of `OccaTest`), klein vs groot model. Meten: aantal correcties per item, tokens.
+1. **AI-test zonder app:** gedaan op het platform met Mistral (72 foto's, meerdere modellen en resoluties; zie de unit economics in Drive).
 2. **App-POC:** foto's → "Volgende" → wachtrij → status-icoon → controle-popup → opslaan.
 3. **Op toestel:** OCR + label-parsing, daarna eigen categoriemodel zodra er genoeg foto's zijn (100–500 per categorie).
 4. **Test met één winkel:** tijd per item, correctieratio.
@@ -140,7 +140,7 @@ Photo
 
 ## 10. Open vragen
 
-- Hosting definitief: Azure of Supabase.
+- Hosting: besloten op Vercel en Supabase (zie `techniek.md`); open is nog waar de concept-worker op termijn draait (GitHub Actions of Scaleway).
 - Welke webshop(s) gebruiken de eerste winkels?
 - Maten bij vintage: label-maat, afmetingen (oksel-oksel, lengte), of beide?
 - Hoe groeperen we foto's per item: altijd expliciet via "Volgende" (huidige keuze), of later automatisch?

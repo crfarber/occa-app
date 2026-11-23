@@ -18,6 +18,7 @@ Dit is **Occa**, een Expo-app (team-boilerplate als basis). Lees eerst [docs/con
 - Verwachte fouten (validatie, inlogfouten) zijn een `Result`; onverwachte zijn excepties uit `src/shared/api/errors.ts`. Een tijdelijke fout (`isRetryable`) logt de gebruiker nooit uit.
 - Geen `enum` (gebruik een `const` object plus union type), geen `any`, geen `!`, geen `console.*` (gebruik de logger). Logdata loopt altijd door `redact`.
 - Zichtbare tekst hoort in `src/shared/i18n/resources.ts` (nl én en). Geen hardcoded tekst in schermen.
+- Maten volgen het grid ([ADR 0020](docs/decisions/0020-maatgrid.md)): breedte per 5 (`spacingX`), hoogte 2 of per 4 (`spacingY`, `size`, line-heights). Uniforme `padding`/`margin` splits je per as; `gap` volgt de richting van de container. `size-grid.test.ts` dwingt het af.
 - `Date.now()`, `new Date()` en `setTimeout` alleen achter de poorten `Clock`, `Sleep` en `Scheduler`, zodat tests de tijd sturen.
 - Geen `Array.prototype.toSorted/toReversed` in app-code (Hermes); kopieer en sorteer.
 - Gebruikersdata die een domein bewaart, wordt gewist in `clearUserData` (container).

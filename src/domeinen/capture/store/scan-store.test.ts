@@ -38,21 +38,25 @@ describe('scan store', () => {
     expect(items[0]?.id).not.toBe(items[1]?.id);
   });
 
-  it('stores multiple photos on one scan', () => {
+  it('stores multiple photos and OCR text on one scan', () => {
     const scans = createScanStore(createFakeClock());
 
     scans.record({
       ...shirt,
+      labelText: 'ACNE STUDIOS / M',
       photos: [
         { uri: 'file:///shirt.jpg', role: 'overview' },
         { uri: 'file:///label.jpg', role: 'label' },
       ],
     });
 
-    expect(scans.store.getState().items[0]?.photos).toEqual([
-      { uri: 'file:///shirt.jpg', role: 'overview' },
-      { uri: 'file:///label.jpg', role: 'label' },
-    ]);
+    expect(scans.store.getState().items[0]).toMatchObject({
+      labelText: 'ACNE STUDIOS / M',
+      photos: [
+        { uri: 'file:///shirt.jpg', role: 'overview' },
+        { uri: 'file:///label.jpg', role: 'label' },
+      ],
+    });
   });
 
   it('gives two scans at the same moment different ids', () => {
@@ -117,6 +121,21 @@ describe('scan store', () => {
     expect(items[0]?.listing.size).toBe('');
   });
 
+  it('keeps the in-progress clothing photos and recognized label in the store', () => {
+    const scans = createScanStore(createFakeClock());
+
+    scans.addDraftPhoto({ uri: 'file:///shirt.jpg', role: 'overview' });
+    scans.setDraftLabel('file:///label.jpg', 'ACNE STUDIOS / M');
+
+    expect(scans.store.getState().draft).toEqual({
+      photos: [
+        { uri: 'file:///shirt.jpg', role: 'overview' },
+        { uri: 'file:///label.jpg', role: 'label' },
+      ],
+      labelText: 'ACNE STUDIOS / M',
+    });
+  });
+
   it('leaves the list unchanged when the scan is unknown', () => {
     const scans = createScanStore(createFakeClock());
     scans.record(shirt);
@@ -127,12 +146,15 @@ describe('scan store', () => {
     expect(scans.store.getState().items).toBe(before);
   });
 
-  it('forgets every scan when cleared', () => {
+  it('forgets every scan and in-progress capture when cleared', () => {
     const scans = createScanStore(createFakeClock());
     scans.record(shirt);
+    scans.setDraftLabel('file:///label.jpg', 'M');
 
     scans.clear();
 
     expect(scans.store.getState().items).toEqual([]);
+    expect(scans.store.getState().draft.photos).toEqual([]);
+    expect(scans.store.getState().draft.labelText).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultStackHeaderOptions, goBackOrReplace } from './navigation';
+import { goBackOrReplace, stackHeaderOptions } from './navigation';
 import { colors } from './theme';
 
 function createNavigation(hasHistory: boolean) {
@@ -16,13 +16,38 @@ function createNavigation(hasHistory: boolean) {
   };
 }
 
-describe('default stack header options', () => {
-  it('uses a compact back button on the brand header', () => {
-    expect(defaultStackHeaderOptions).toMatchObject({
-      headerStyle: { backgroundColor: colors.brand },
-      headerBackButtonDisplayMode: 'minimal',
-      headerTintColor: colors.onBrand,
-      headerTitleAlign: 'center',
+describe('stack header options', () => {
+  it.each(['liquidGlass', 'blur', 'solid'] as const)(
+    'keeps an empty title, compact back button and no bottom border (%s)',
+    (look) => {
+      expect(stackHeaderOptions(look)).toMatchObject({
+        headerTitle: '',
+        headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: colors.text,
+        headerTitleAlign: 'center',
+        headerShadowVisible: false,
+      });
+    },
+  );
+
+  it('leaves liquid glass to the system without an extra blur', () => {
+    const options = stackHeaderOptions('liquidGlass');
+    expect(options).toMatchObject({ headerTransparent: true });
+    expect(options).not.toHaveProperty('headerStyle');
+    expect(options).not.toHaveProperty('headerBlurEffect');
+  });
+
+  it('frosts the transparent header when liquid glass is unavailable', () => {
+    expect(stackHeaderOptions('blur')).toMatchObject({
+      headerTransparent: true,
+      headerBlurEffect: 'systemThinMaterialLight',
+    });
+  });
+
+  it('keeps a solid canvas header when content must not scroll beneath it', () => {
+    expect(stackHeaderOptions('solid')).toMatchObject({
+      headerTransparent: false,
+      headerStyle: { backgroundColor: colors.canvas },
     });
   });
 });

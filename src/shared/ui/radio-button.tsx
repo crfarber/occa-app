@@ -1,6 +1,6 @@
+import { colors, size, spacingX, type } from './theme';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { colors, spacing } from './theme';
 
 type RadioButtonProps = {
   selected: boolean;
@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: spacingX.md,
   },
   outer: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: size.radio,
+    height: size.radio,
+    borderRadius: size.radio / 2,
     borderWidth: 2,
     borderColor: colors.border,
     alignItems: 'center',
@@ -63,15 +63,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   inner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: size.radioDot,
+    height: size.radioDot,
+    borderRadius: size.radioDot / 2,
     backgroundColor: colors.text,
   },
   label: {
+    ...type.labelMd,
     color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
   },
   pressed: {
     opacity: 0.8,

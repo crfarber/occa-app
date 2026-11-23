@@ -1,0 +1,33 @@
+diff --git a/ios/RNMLKitImage.swift b/ios/RNMLKitImage.swift
+index ff4dce49c43856740ba22b1f21440632dc2dbc23..773ace5f38f5142a7a2645ec66599aedc449dde1 100644
+--- a/ios/RNMLKitImage.swift
++++ b/ios/RNMLKitImage.swift
+@@ -1,5 +1,7 @@
+ import Foundation
++#if !targetEnvironment(simulator)
+ import MLKitVision
++#endif
+ 
+ public enum RNMLKitImageError: Error {
+     case invalidImageURL(imagePath: String)
+@@ -9,7 +11,9 @@ public enum RNMLKitImageError: Error {
+ public class RNMLKitImage {
+     public var imageURL: URL
+     public var uiImage: UIImage
++    #if !targetEnvironment(simulator)
+     public var visionImage: VisionImage
++    #endif
+ 
+     public init(imagePath: String) throws {
+         guard let imageURL = URL(string: imagePath) else {
+@@ -24,8 +28,10 @@ public class RNMLKitImage {
+ 
+         self.uiImage = originalUIImage.fixedOrientation() // Normalize orientation
+ 
++        #if !targetEnvironment(simulator)
+         self.visionImage = VisionImage(image: self.uiImage)
+         self.visionImage.orientation = .up // Now it's always properly oriented
++        #endif
+     }
+ }
+ 

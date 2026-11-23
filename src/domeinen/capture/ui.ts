@@ -2,8 +2,11 @@
 export {
   CaptureProvider,
   useImageClassifier,
+  useCaptureDraft,
   useImageColorSampler,
   useRecordScan,
+  useScanStoreActions,
+  useTextRecognizer,
   useScan,
   useScans,
   useUpdateListing,
@@ -15,5 +18,6 @@ export {
   useCustomCategoryClassifier,
 } from './platform/rn/custom-category-classifier';
 export { createMlKitImageClassifier } from './platform/rn/mlkit-image-classifier';
+export { createMlKitTextRecognizer } from './platform/rn/mlkit-text-recognizer';
 export { CaptureScreen } from './screens/capture-screen';
 export { ListingScreen } from './screens/listing-screen';

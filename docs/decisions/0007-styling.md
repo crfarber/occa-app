@@ -4,7 +4,7 @@
 
 ## Besluit
 
-`StyleSheet.create` met design-tokens uit `src/shared/ui/theme.ts` (kleuren, spacing, radius, typografie) en kleine primitieven in `src/shared/ui/` (`Button`, `TextField`, `Screen`, ...). Geen losse kleuren of maten in schermen. Kleurtokens heten naar hun functie (`brand`, `onBrand`, `action`, `danger`, ...), zodat een nieuw project alleen de waarden aanpast.
+`StyleSheet.create` met design-tokens uit `src/shared/ui/theme.ts` (kleuren, spacing, radius, typografie) en kleine primitieven in `src/shared/ui/` (`Button`, `TextField`, `Screen`, ...). Geen losse kleuren of maten in schermen. Kleurtokens heten naar hun functie (`brand`, `onBrand`, `action`, `danger`, ...), zodat een nieuw project alleen de waarden aanpast. Maten volgen het grid uit [0020](0020-maatgrid.md).
 
 ## Waarom
 

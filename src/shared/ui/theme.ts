@@ -1,43 +1,85 @@
-/**
- * Design tokens. Screens use these, never loose colors or sizes. A new project changes the values
- * here (and the splash/icon colors in `app.config.ts`); the names say what a color is FOR, so the
- * components keep working: `onX` is text or an icon on top of `X`.
- */
+import {
+  color,
+  fontFamily,
+  radius as tokenRadius,
+  screenGutter,
+  space,
+  spaceX,
+  text,
+} from './remi-tokens';
+
+export { color, fontFamily, motion, shadowRN, size, text, tokens } from './remi-tokens';
+
 export const colors = {
-  /** Primary color: header, primary button, active toggle. */
-  brand: '#1F6FEB',
-  onBrand: '#FFFFFF',
-  /** Links, text buttons and the "processing" state. */
-  action: '#1F6FEB',
-  onAction: '#FFFFFF',
-  /** Dark surfaces, for example an info toast. */
-  inverseSurface: '#24292F',
-  onInverseSurface: '#FFFFFF',
-  background: '#FFFFFF',
-  surface: '#F6F8FA',
-  buttonLight: '#FFFFFF',
-  inputFill: '#EFF2F5',
-  text: '#1F2328',
-  textMuted: '#656D76',
-  border: '#D0D7DE',
-  danger: '#CF222E',
-  dangerSurface: '#FFEBE9',
-  warning: '#D4A72C',
-  onWarning: '#1F2328',
-  warningSurface: '#FFF8C5',
-  success: '#1A7F37',
-  overlay: 'rgba(0,0,0,0.5)',
+  brand: color.plum,
+  onBrand: color.onPlum,
+  action: color.plum,
+  onAction: color.onPlum,
+  inverseSurface: color.ink,
+  onInverseSurface: color.surface,
+  background: color.surface,
+  canvas: color.canvas,
+  surface: color.surface,
+  buttonLight: color.surface,
+  secondaryButton: color.plumSoft,
+  inputFill: color.surfaceSunken,
+  text: color.ink,
+  textMuted: color.inkMuted,
+  border: color.line,
+  danger: color.status.geweigerd.ink,
+  dangerSurface: color.status.geweigerd.soft,
+  warning: color.accent.amber,
+  onWarning: color.ink,
+  warningSurface: color.status.geweigerd.soft,
+  success: color.status.bevestigd.ink,
+  overlay: color.scrim,
 } as const;
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
+/**
+ * Two scales with the same step names (ADR 0020). `spacingX` for widths and anything left/right,
+ * `spacingY` for heights and anything top/bottom. A uniform `padding` or `margin` is split into
+ * `paddingHorizontal` + `paddingVertical`; a `gap` follows the direction of its container.
+ */
+export const spacingX = {
+  xs: spaceX[1],
+  sm: spaceX[2],
+  md: spaceX[3],
+  lg: spaceX[4],
+  xl: spaceX[5],
+  xxl: spaceX[8],
+  xxxl: spaceX[10],
+  screen: screenGutter,
+} as const;
 
-export const radius = { sm: 6, md: 8, lg: 12, xl: 16, xxl: 24 } as const;
+export const spacingY = {
+  xxs: space[0.5],
+  xs: space[1],
+  sm: space[2],
+  md: space[3],
+  lg: space[4],
+  xl: space[6],
+  xxl: space[8],
+  xxxl: space[12],
+  screen: screenGutter,
+} as const;
 
-/** iOS Dynamic Type at the default Large size. Sizes are points. */
+export const radius = {
+  sm: tokenRadius.sm,
+  md: tokenRadius.md,
+  lg: tokenRadius.lg,
+  xl: tokenRadius.lg,
+  xxl: tokenRadius.pill,
+} as const;
+
 export const type = {
-  small: { fontSize: 12, lineHeight: 16, fontWeight: '400' },
-  label: { fontSize: 15, lineHeight: 20, fontWeight: '600' },
-  body: { fontSize: 17, lineHeight: 22, fontWeight: '400' },
-  header: { fontSize: 20, lineHeight: 25, fontWeight: '600' },
-  large: { fontSize: 28, lineHeight: 34, fontWeight: '700' },
+  small: { ...text.caption, fontFamily: fontFamily.sansRN[500] },
+  label: { ...text.labelMd, fontFamily: fontFamily.sansRN[500] },
+  statusLabel: { ...text.label, fontFamily: fontFamily.sansRN[500] },
+  body: { ...text.body, fontFamily: fontFamily.sansRN[400] },
+  bodySm: { ...text.bodySm, fontFamily: fontFamily.sansRN[400] },
+  labelMd: { ...text.labelMd, fontFamily: fontFamily.sansRN[500] },
+  labelLg: { ...text.labelLg, fontFamily: fontFamily.sansRN[500] },
+  header: { ...text.heading, fontFamily: fontFamily.sansRN[500] },
+  large: { ...text.title, fontFamily: fontFamily.sansRN[500] },
+  emphasis: { ...text.emphasis, fontFamily: fontFamily.sansRN[700] },
 } as const;

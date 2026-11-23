@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '@/shared/ui/theme';
+import { colors, spacingX, spacingY, type } from '@/shared/ui/theme';
 
 /** One row in the settings list: icon, label, chevron. */
 export function SettingsMenuRow({
@@ -36,17 +36,17 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
+    gap: spacingX.md,
+    paddingVertical: spacingY.lg,
+    paddingHorizontal: spacingX.md,
     backgroundColor: colors.background,
   },
   pressed: { opacity: 0.7 },
-  leading: { width: 28, alignItems: 'center', justifyContent: 'center' },
-  label: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.text },
+  leading: { width: spacingX.xl + spacingX.xs, alignItems: 'center', justifyContent: 'center' },
+  label: { ...type.labelMd, flex: 1, color: colors.text },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
-    marginLeft: spacing.md,
+    marginLeft: spacingX.md,
   },
 });

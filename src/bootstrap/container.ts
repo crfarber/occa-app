@@ -8,6 +8,7 @@ import {
   createSessionLifecycle,
   createSessionRepository,
   createSessionStore,
+  createSupabasePasswordAuthenticator,
   createTokenProvider,
   type AuthService,
   type Authenticator,
@@ -21,8 +22,27 @@ import {
   type ImageClassifier,
   type ImageColorSampler,
   type ScanStore,
+  type TextRecognizer,
 } from '@/domeinen/capture';
+import {
+  createSelectedStoreStore,
+  createShopStoresApi,
+  type SelectedStoreStore,
+  type ShopStoresApi,
+} from '@/domeinen/shops';
+import {
+  createShopItemDetailApi,
+  createShopItemsApi,
+  type ShopItemDetailApi,
+  type ShopItemsApi,
+} from '@/domeinen/inventory';
 import { createLanguageSettings, type LanguageSettings } from '@/domeinen/settings';
+import {
+  createOutboxRepository,
+  createShopItemCreateApi,
+  createSubmissionService,
+  type SubmissionService,
+} from '@/domeinen/submission';
 import { createHttpClient, type HttpClient } from '@/shared/api/http-client';
 import type { RuntimeConfig } from '@/shared/config/runtime-config';
 import { createI18n } from '@/shared/i18n/i18n';
@@ -37,6 +57,7 @@ import {
   type Clock,
   type Haptics,
   type KeyValueStore,
+  type MultipartUploadFiles,
   type SecretStore,
   type Sleep,
 } from '@/shared/platform/ports';
@@ -63,6 +84,9 @@ export type ContainerInput = {
   imageClassifier: ImageClassifier;
   /** Average colour from photo pixels. Built in `native.ts`; tests pass a fake. */
   imageColorSampler: ImageColorSampler;
+  textRecognizer: TextRecognizer;
+  /** Builds multipart file parts from a photo URI or bytes. */
+  multipartUploadFiles: MultipartUploadFiles;
   fetch?: typeof fetch;
   clock?: Clock;
   sleep?: Sleep;
@@ -92,8 +116,15 @@ export type Container = {
   languageSettings: LanguageSettings;
   imageClassifier: ImageClassifier;
   imageColorSampler: ImageColorSampler;
+  textRecognizer: TextRecognizer;
   /** Scans of this session. Cleared on sign-out. */
   scanStore: ScanStore;
+  shopsApi: ShopStoresApi;
+  selectedStore: SelectedStoreStore;
+  inventoryApi: ShopItemsApi;
+  itemDetailApi: ShopItemDetailApi;
+  /** Local outbox of scans waiting for the shop API. Cleared on sign-out. */
+  submission: SubmissionService;
   /** Restores the session and starts keeping it fresh. Call once, at app start. */
   start(): Promise<void>;
   stop(): void;
@@ -114,9 +145,20 @@ function selectAuthenticator(
   config: RuntimeConfig,
   deviceAuthenticator: Authenticator | null,
   clock: Clock,
+  logger: Logger,
 ): Authenticator {
   if (config.auth.provider === 'demo') {
     return createDemoAuthenticator(clock);
+  }
+  if (config.auth.provider === 'supabase') {
+    // Cloud auth: use the platform fetch. Expo's fetch is for the LAN shop-API.
+    return createSupabasePasswordAuthenticator({
+      url: config.auth.supabase.url,
+      anonKey: config.auth.supabase.anonKey,
+      fetch: globalThis.fetch.bind(globalThis),
+      clock,
+      logger,
+    });
   }
   if (deviceAuthenticator?.method !== config.auth.provider) {
     throw new Error(`No device authenticator for ${config.auth.provider} sign-in`);
@@ -173,7 +215,7 @@ export function createContainer(input: ContainerInput): Container {
     scheduleCacheSave();
   });
 
-  const authenticator = selectAuthenticator(config, input.deviceAuthenticator, clock);
+  const authenticator = selectAuthenticator(config, input.deviceAuthenticator, clock, logger);
 
   const tokenProvider = createTokenProvider({
     repository: createSessionRepository(input.secretStore),
@@ -197,12 +239,26 @@ export function createContainer(input: ContainerInput): Container {
   const sessionStore = createSessionStore();
   const unbindSessionStore = bindSessionStore(tokenProvider, sessionStore);
   const scanStore = createScanStore(clock);
+  const selectedStore = createSelectedStoreStore(input.keyValueStore);
+  const shopsApi = createShopStoresApi(http);
+  const inventoryApi = createShopItemsApi(http);
+  const itemDetailApi = createShopItemDetailApi(http);
+  const submission = createSubmissionService({
+    repository: createOutboxRepository(input.keyValueStore),
+    api: createShopItemCreateApi(http),
+    files: input.multipartUploadFiles,
+    clock,
+    scheduler,
+    logger,
+  });
 
   /** Data of the previous user must not be visible to the next one. Preferences survive. */
   async function clearUserData(): Promise<void> {
     cancelPendingCacheSave();
     queryClient.clear();
     scanStore.clear();
+    await submission.clear();
+    await selectedStore.clear();
     await clearQueryCache(input.keyValueStore);
   }
 
@@ -253,7 +309,13 @@ export function createContainer(input: ContainerInput): Container {
     languageSettings,
     imageClassifier: input.imageClassifier,
     imageColorSampler: input.imageColorSampler,
+    textRecognizer: input.textRecognizer,
     scanStore,
+    shopsApi,
+    selectedStore,
+    inventoryApi,
+    itemDetailApi,
+    submission,
 
     async start() {
       // Before the session is known, so the first screen after the splash is already right.
@@ -271,7 +333,9 @@ export function createContainer(input: ContainerInput): Container {
         });
       }
       if (tokenProvider.getStatus() === 'signed-in') {
+        await selectedStore.restore();
         await loadQueryCache(queryClient, input.keyValueStore);
+        void submission.flush();
       }
     },
 

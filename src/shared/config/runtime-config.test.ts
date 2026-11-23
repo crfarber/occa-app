@@ -73,6 +73,29 @@ describe('parseRuntimeConfig', () => {
     expect(!result.ok && result.error[0]).toContain('EXPO_PUBLIC_AUTH_PROVIDER');
   });
 
+  it('builds the Supabase auth config when URL and anon key are present', () => {
+    const result = parseRuntimeConfig({
+      ...minimal,
+      EXPO_PUBLIC_AUTH_PROVIDER: 'supabase',
+      EXPO_PUBLIC_SUPABASE_URL: 'https://example.supabase.co/',
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: 'anon-key',
+    });
+    expect(result.ok && result.value.auth).toEqual({
+      provider: 'supabase',
+      supabase: { url: 'https://example.supabase.co', anonKey: 'anon-key' },
+    });
+  });
+
+  it('rejects supabase sign-in without the project URL or anon key', () => {
+    const result = parseRuntimeConfig({
+      ...minimal,
+      EXPO_PUBLIC_AUTH_PROVIDER: 'supabase',
+      EXPO_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    });
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.error[0]).toContain('EXPO_PUBLIC_SUPABASE_');
+  });
+
   it('does not allow demo sign-in in production', () => {
     const result = parseRuntimeConfig({
       ...minimal,

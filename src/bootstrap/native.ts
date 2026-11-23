@@ -2,7 +2,8 @@ import { authorize, refresh } from 'react-native-app-auth';
 import { fetch as expoFetch } from 'expo/fetch';
 import type { Authenticator } from '@/domeinen/auth';
 import { createAzureAdAuthenticator } from '@/domeinen/auth/ui';
-import { createAverageImageColorSampler } from '@/domeinen/capture/ui';
+import { createAverageImageColorSampler, createMlKitTextRecognizer } from '@/domeinen/capture/ui';
+import { createRnMultipartUploadFiles } from '@/domeinen/submission/ui';
 import { createDeviceKeyValueStore } from '@/shared/platform/rn/key-value-store';
 import { createExpoHaptics } from '@/shared/platform/rn/expo-haptics';
 import { createDeviceSecretStore } from '@/shared/platform/rn/secure-store';
@@ -22,6 +23,8 @@ function detectLanguage(): Language {
 function buildDeviceAuthenticator(config: RuntimeConfig): Authenticator | null {
   switch (config.auth.provider) {
     case 'demo':
+    case 'supabase':
+      // Built inside the container (no native module).
       return null;
     case 'azure-ad':
       return createAzureAdAuthenticator({
@@ -44,6 +47,8 @@ export function createNativeContainer(): Container {
     // Container still requires a classifier for the type and for tests.
     imageClassifier: { label: async () => [] },
     imageColorSampler: createAverageImageColorSampler(),
+    textRecognizer: createMlKitTextRecognizer(),
+    multipartUploadFiles: createRnMultipartUploadFiles(),
     haptics: createExpoHaptics(),
     logSink: consoleSink,
     fetch: expoFetch,

@@ -25,10 +25,10 @@ Het script (`run_training.py`):
 
 ## Publieke dataset
 
-| Wat | URL |
-| --- | --- |
-| Repo | https://github.com/alexeygrigorev/clothing-dataset |
-| Zip | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
+| Wat  | URL                                                                              |
+| ---- | -------------------------------------------------------------------------------- |
+| Repo | https://github.com/alexeygrigorev/clothing-dataset                               |
+| Zip  | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
 
 ## Eigen winkelfoto’s
 

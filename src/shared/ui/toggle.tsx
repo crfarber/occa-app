@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { colors, spacing, type } from './theme';
+import { colors, size, spacingX, type } from './theme';
 
 type ToggleProps = {
   value: boolean;
@@ -43,15 +43,14 @@ export function Toggle({
 
 const TRACK_W = 40;
 const TRACK_H = 24;
-const THUMB = 18;
-const PAD = 3;
+const THUMB = 16;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 44,
+    gap: spacingX.md,
+    minHeight: size.control,
   },
   label: { flex: 1, color: colors.text },
   track: {
@@ -60,7 +59,7 @@ const styles = StyleSheet.create({
     borderRadius: TRACK_H / 2,
     backgroundColor: colors.border,
     justifyContent: 'center',
-    paddingHorizontal: PAD,
+    paddingHorizontal: spacingX.xs,
   },
   trackOn: { backgroundColor: colors.text }, // ink
   thumb: {

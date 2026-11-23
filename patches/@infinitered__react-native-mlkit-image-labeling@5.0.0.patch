@@ -1,0 +1,114 @@
+diff --git a/ios/RNMLKitImageLabeler.swift b/ios/RNMLKitImageLabeler.swift
+index 98fb54a141b9f6446e39ecd98557244690ec4b60..ac56c44822465b3f69c8c177974b6d4a2687dd08 100644
+--- a/ios/RNMLKitImageLabeler.swift
++++ b/ios/RNMLKitImageLabeler.swift
+@@ -7,10 +7,12 @@
+ 
+ import Foundation
+ import ExpoModulesCore
++import RNMLKitCore
++#if !targetEnvironment(simulator)
+ import MLKitCommon
+ import MLKitImageLabelingCustom
+ import MLKitVision
+-import RNMLKitCore
++#endif
+ 
+ let ERROR_DOMAIN:String = "red.infinite.react-native-mlkit.ImageLabelerErrorDomain"
+ 
+@@ -34,14 +36,18 @@ enum RNMLKitImageLabelerError:Error {
+     case processingImageFailed(message:String, imagePath:String)
+     /// The labels array returned by the imageLabeller was nil or empty
+     case labellerReturnedNoLabels(imagePage:String)
++    /// Google ML Kit is not available on the iOS Simulator
++    case unavailableOnSimulator
+ }
+ 
+ 
+ public class RNMLKitImageLabeler {
+ 
++    #if !targetEnvironment(simulator)
+     private var model:LocalModel;
+     private var customImageLabelerOptions:CustomImageLabelerOptions;
+     private var imageLabeler:ImageLabeler
++    #endif
+     private var logger:Logger
+ 
+     /**
+@@ -53,7 +59,9 @@ public class RNMLKitImageLabeler {
+     init(context:RNMLKitContext, modelPath:String, options:RNMLKitImageLabelerOptions? = nil) throws {
+         logger=context.logger;
+ 
+-
++        #if targetEnvironment(simulator)
++        logger.info("RNMLKit", "Image labeling is not available on the iOS Simulator")
++        #else
+         // create model
+         model = LocalModel(path:modelPath)
+ 
+@@ -70,6 +78,7 @@ public class RNMLKitImageLabeler {
+         customImageLabelerOptions.maxResultCount = options?.maxResultCount ?? 10
+ 
+         imageLabeler = ImageLabeler.imageLabeler(options: self.customImageLabelerOptions)
++        #endif
+     }
+ 
+     public struct Result {
+@@ -82,15 +91,20 @@ public class RNMLKitImageLabeler {
+     }
+ 
+     public func classifyImage(imagePath:String) async throws -> [Result] {
++        #if targetEnvironment(simulator)
++        throw RNMLKitImageLabelerError.unavailableOnSimulator
++        #else
+         // convert image to relevant image class
+         let image = try RNMLKitImage(imagePath: imagePath)
+ 
+         return try await self.classifyImage(image: image)
++        #endif
+     }
+ 
+     public func classifyImage(image: RNMLKitImage) async throws -> [Result] {
+-
+-
++        #if targetEnvironment(simulator)
++        throw RNMLKitImageLabelerError.unavailableOnSimulator
++        #else
+         var labels: [ImageLabel]
+ 
+         // run the inference
+@@ -108,10 +122,12 @@ public class RNMLKitImageLabeler {
+         }
+ 
+         return results
++        #endif
+     }
+ 
+ 
+     public func setOptions(options: RNMLKitImageLabelerOptions) {
++        #if !targetEnvironment(simulator)
+         let threshold = options.confidenceThreshold
+         if let actualThreshold = threshold {
+             customImageLabelerOptions.confidenceThreshold = NSNumber(value: actualThreshold)
+@@ -119,6 +135,7 @@ public class RNMLKitImageLabeler {
+             customImageLabelerOptions.confidenceThreshold = nil
+         }
+         customImageLabelerOptions.maxResultCount = options.maxResultCount ?? 10
++        #endif
+     }
+ 
+ }
+diff --git a/ios/RNMLKitImageLabelingModule.swift b/ios/RNMLKitImageLabelingModule.swift
+index 87db9b8bf600182701650126c5ea72412379d928..bf90eb19f0812612133aa33d1a2ebc133ddd6e5e 100644
+--- a/ios/RNMLKitImageLabelingModule.swift
++++ b/ios/RNMLKitImageLabelingModule.swift
+@@ -1,7 +1,9 @@
+ import ExpoModulesCore
++#if !targetEnvironment(simulator)
+ import MLKitCommon
+ import MLKitImageLabelingCustom
+ import MLKitVision
++#endif
+ 
+ // Structure to represent the result of image labeling
+ struct RNMLKitImageLabelResult: Record {

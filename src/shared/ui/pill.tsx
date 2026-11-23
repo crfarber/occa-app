@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, type } from './theme';
+import { colors, radius, spacingX, spacingY, type } from './theme';
 
 export const pillTones = {
   neutral: { backgroundColor: colors.textMuted, color: colors.background },
@@ -24,8 +24,8 @@ const styles = StyleSheet.create({
   pill: {
     alignSelf: 'flex-start',
     borderRadius: radius.xxl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.xs,
   },
   label: {
     ...type.label,

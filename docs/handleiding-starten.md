@@ -10,17 +10,17 @@ categoriemodel. Alle commando’s gaan uit van de **repo-root**, tenzij anders v
 
 ## 1. Wat je nodig hebt
 
-| Tool | Waarvoor | Richtlijn |
-| ---- | -------- | --------- |
-| macOS | iOS-builds | met Xcode |
-| [Xcode](https://developer.apple.com/xcode/) (App Store) | iOS Simulator / device | eenmaal openen, license accepteren, Components naar wens |
-| Xcode Command Line Tools | compilers | `xcode-select --install` |
-| CocoaPods | iOS native deps | komt vaak mee via `pnpm ios`; anders `sudo gem install cocoapods` |
-| Node.js ≥ 22.13 | JS-runtime | [nodejs.org](https://nodejs.org/) of `brew install node@22` |
-| pnpm 11 | package manager | via Corepack (zie hieronder) |
-| iPhone of Simulator | app draaien | fysiek toestel: developer mode / signing in Xcode |
-| Python 3.11+ (aanbevolen) | model trainen | aparte venv onder `training/` |
-| ~5 GB vrije schijf | dataset + TensorFlow | clothing-zip ~320 MB + TF |
+| Tool                                                    | Waarvoor               | Richtlijn                                                         |
+| ------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------- |
+| macOS                                                   | iOS-builds             | met Xcode                                                         |
+| [Xcode](https://developer.apple.com/xcode/) (App Store) | iOS Simulator / device | eenmaal openen, license accepteren, Components naar wens          |
+| Xcode Command Line Tools                                | compilers              | `xcode-select --install`                                          |
+| CocoaPods                                               | iOS native deps        | komt vaak mee via `pnpm ios`; anders `sudo gem install cocoapods` |
+| Node.js ≥ 22.13                                         | JS-runtime             | [nodejs.org](https://nodejs.org/) of `brew install node@22`       |
+| pnpm 11                                                 | package manager        | via Corepack (zie hieronder)                                      |
+| iPhone of Simulator                                     | app draaien            | fysiek toestel: developer mode / signing in Xcode                 |
+| Python 3.11+ (aanbevolen)                               | model trainen          | aparte venv onder `training/`                                     |
+| ~5 GB vrije schijf                                      | dataset + TensorFlow   | clothing-zip ~320 MB + TF                                         |
 
 Android is optioneel (`pnpm android` + Android Studio); deze handleiding focust op iOS.
 
@@ -59,18 +59,55 @@ Eerste keer kan even duren (native modules + Expo).
 
 ### Omgevingsvariabelen
 
-Maak een lokaal env-bestand (wordt niet gecommit):
+Productstandaard is **Supabase** (zelfde accounts als partner). Kopieer het voorbeeld:
 
 ```bash
-cat > .env.local <<'EOF'
-EXPO_PUBLIC_ENVIRONMENT=internal
-EXPO_PUBLIC_AUTH_PROVIDER=demo
-# Optioneel tot er een API is:
-# EXPO_PUBLIC_API_BASE_URL=https://example.com
-EOF
+cp .env.example .env.local
 ```
 
-Met `demo` kun je zonder Azure AD inloggen. Productie weigert demo-login.
+Vul daarna URL + anon key in (of haal ze uit de terminal, zie hieronder). `.env.local` wordt
+niet gecommit.
+
+#### Supabase-keys via de terminal
+
+Met [Supabase CLI](https://supabase.com/docs/guides/cli) (eenmalig `supabase login`):
+
+```bash
+# Projecten in je orgs
+supabase projects list
+
+# Keys van het Occa-project (REFERENCE ID uit de lijst)
+supabase projects api-keys --project-ref <REFERENCE_ID>
+```
+
+Gebruik alleen de **anon**-key in de app. Zet nooit `service_role` in `.env.local`.
+
+URL-vorm: `https://<REFERENCE_ID>.supabase.co`.
+
+Voorbeeld `.env.local` (waarden zelf invullen):
+
+```bash
+EXPO_PUBLIC_ENVIRONMENT=internal
+EXPO_PUBLIC_AUTH_PROVIDER=supabase
+EXPO_PUBLIC_SUPABASE_URL=https://<REFERENCE_ID>.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon uit api-keys>
+# Simulator: localhost. Fysiek toestel: LAN-IP van je Mac (localhost = de telefoon zelf).
+# Voorbeeld: EXPO_PUBLIC_API_BASE_URL=http://192.168.2.9:3001
+EXPO_PUBLIC_API_BASE_URL=http://localhost:3001
+```
+
+Op een **fysiek toestel** faalt `localhost` met `Network request failed`. Gebruik het IP van je
+Mac (`ipconfig getifaddr en0`) en zorg dat telefoon en Mac op hetzelfde wifi zitten. Partner moet
+op `*:3001` luisteren (`next dev --port 3001` doet dat).
+
+Na een wijziging in `.env.local`: Metro herstarten (`pnpm start` opnieuw), anders blijven oude
+waarden in de bundle.
+
+**Demo** (`EXPO_PUBLIC_AUTH_PROVIDER=demo`) blijft beschikbaar voor CI / UI zonder backend.
+Productie weigert demo-login. Demo-tokens werken niet tegen de echte shop-API.
+
+**Inloggen:** e-mail + wachtwoord van een bestaande partner/Supabase-user. Nieuw account aanmaken
+gebeurt in partner of in het Supabase-dashboard (Authentication → Users), niet in deze app.
 
 ---
 
@@ -92,6 +129,10 @@ Dat doet grofweg:
 4. Metro starten met **dev client**
 
 Duurt de eerste keer vaak 5–15 minuten.
+
+**Simulator** (`pnpm ios --device` → iPhone 16 Pro e.d.) werkt voor UI en navigatie. **Categorie-
+en OCR (ML Kit) werken alleen op een fysiek toestel** — Google levert geen arm64-simulator-
+binaries; stubs voorkomen dat de build faalt.
 
 **Fysiek iPhone:** open daarna `ios/*.xcworkspace` in Xcode, kies je Team onder Signing, of
 gebruik `pnpm ios --device` / Device-kiezer in de Expo-CLI.
@@ -156,10 +197,10 @@ pnpm training -- https://github.com/alexeygrigorev/clothing-dataset/archive/refs
 
 Bronnen:
 
-| Wat | URL |
-| --- | --- |
-| GitHub-repo (CC0) | https://github.com/alexeygrigorev/clothing-dataset |
-| Default zip | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
+| Wat               | URL                                                                              |
+| ----------------- | -------------------------------------------------------------------------------- |
+| GitHub-repo (CC0) | https://github.com/alexeygrigorev/clothing-dataset                               |
+| Default zip       | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
 
 Optionele flags (na `--`):
 
@@ -207,37 +248,37 @@ pnpm training -- --data training/dataset --skip-download
 
 ## 7. Handige links (samenvatting)
 
-| Onderwerp | URL / pad |
-| --------- | --------- |
-| Clothing dataset repo | https://github.com/alexeygrigorev/clothing-dataset |
-| Clothing dataset zip | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
-| Expo docs | https://docs.expo.dev/ |
-| pnpm | https://pnpm.io/ |
-| Xcode | https://developer.apple.com/xcode/ |
-| Training README | [training/README.md](../training/README.md) |
-| Categoriemodel (wiki) | [wiki/categorie-model.md](wiki/categorie-model.md) |
-| Occa-brief | [occa-brief.md](occa-brief.md) |
+| Onderwerp             | URL / pad                                                                        |
+| --------------------- | -------------------------------------------------------------------------------- |
+| Clothing dataset repo | https://github.com/alexeygrigorev/clothing-dataset                               |
+| Clothing dataset zip  | https://github.com/alexeygrigorev/clothing-dataset/archive/refs/heads/master.zip |
+| Expo docs             | https://docs.expo.dev/                                                           |
+| pnpm                  | https://pnpm.io/                                                                 |
+| Xcode                 | https://developer.apple.com/xcode/                                               |
+| Training README       | [training/README.md](../training/README.md)                                      |
+| Categoriemodel (wiki) | [wiki/categorie-model.md](wiki/categorie-model.md)                               |
+| Occa-brief            | [occa-brief.md](occa-brief.md)                                                   |
 
 ---
 
 ## 8. Veelvoorkomende problemen
 
-| Symptoom | Richting |
-| -------- | -------- |
+| Symptoom                       | Richting                                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
 | “Recognising the photo failed” | Model niet geladen, of float16 zonder metadata — gebruik int8-export in `assets/models/` |
-| Geen labels / lege lijst | Lage confidence int8; drempels in classifier / `interpret-labels` |
-| Expo Go / geen ML Kit | Verplicht development build (`pnpm ios`) |
-| `pod install` faalt | Xcode CLI tools, CocoaPods, `cd ios && pod install` na `pnpm prebuild` |
-| App start niet (config) | `.env.local` mist verplichte `EXPO_PUBLIC_*` |
-| TensorFlow import faalt | Andere Python-versie in venv (3.11/3.12), `pip install -U pip` |
+| Geen labels / lege lijst       | Lage confidence int8; drempels in classifier / `interpret-labels`                        |
+| Expo Go / geen ML Kit          | Verplicht development build (`pnpm ios`)                                                 |
+| `pod install` faalt            | Xcode CLI tools, CocoaPods, `cd ios && pod install` na `pnpm prebuild`                   |
+| App start niet (config)        | `.env.local` mist verplichte `EXPO_PUBLIC_*`                                             |
+| TensorFlow import faalt        | Andere Python-versie in venv (3.11/3.12), `pip install -U pip`                           |
 
 ---
 
 ## 9. Korte checklist “van scratch”
 
-1. Xcode + Node ≥ 22.13 + `corepack enable` / pnpm  
-2. `git clone` → `pnpm install` → `.env.local` met demo-auth  
-3. `pnpm ios` (eerste native build)  
-4. App openen, demo-login, scannen testen  
-5. (Optioneel) `pnpm training` of `pnpm training -- <zip-url>` → model in `assets/models/`  
-6. `pnpm run ci` groen houden  
+1. Xcode + Node ≥ 22.13 + `corepack enable` / pnpm
+2. `git clone` → `pnpm install` → `.env.local` met supabase (+ partner op `:3001` voor Inboedel)
+3. `pnpm ios` (eerste native build)
+4. App openen, inloggen met e-mail/wachtwoord, scannen / Inboedel testen
+5. (Optioneel) `pnpm training` of `pnpm training -- <zip-url>` → model in `assets/models/`
+6. `pnpm run ci` groen houden

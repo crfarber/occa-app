@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text } from 'react-native';
 import { LANGUAGES } from '@/shared/i18n/resources';
 import { Screen } from '@/shared/ui/screen';
-import { colors, spacing } from '@/shared/ui/theme';
+import { colors, spacingY, type } from '@/shared/ui/theme';
 import { LanguageToggle } from '../components/language-toggle';
 import { useLanguageSettings } from '../hooks/settings-context';
 
@@ -21,5 +21,5 @@ export function LanguageScreen() {
 }
 
 const styles = StyleSheet.create({
-  hint: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.sm },
+  hint: { ...type.bodySm, color: colors.textMuted, marginBottom: spacingY.sm },
 });

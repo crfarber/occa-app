@@ -53,4 +53,6 @@ export type MultipartUploadFiles = {
     bytes: Uint8Array,
     metadata: { name: string; type: string },
   ): Promise<MultipartUploadFile>;
+  /** A photo already on disk (a file:// or content:// URI). */
+  fromUri(uri: string, metadata: { name: string; type: string }): Promise<MultipartUploadFile>;
 };

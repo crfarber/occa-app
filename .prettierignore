@@ -1,10 +1,12 @@
 node_modules/
 coverage/
 dist/
+storybook-static/
 .expo/
 ios/
 android/
 training/.venv/
+tools/background-removal/.venv/
 training/.clothing_cache/
 training/dataset/
 training/clothing_data/

@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 /**
  * How the session was signed in, so a refresh goes back to the same place. `demo` needs no backend;
- * `azure-ad` signs in through a browser sheet (see `platform/rn/azure-ad-authenticator.ts`).
+ * `azure-ad` signs in through a browser sheet (see `platform/rn/azure-ad-authenticator.ts`);
+ * `supabase` uses e-mail and password against the shared Occa Auth project.
  */
-export const AUTH_METHODS = ['demo', 'azure-ad'] as const;
+export const AUTH_METHODS = ['demo', 'azure-ad', 'supabase'] as const;
 export type AuthMethod = (typeof AUTH_METHODS)[number];
 
 /**

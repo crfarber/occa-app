@@ -52,6 +52,7 @@ const ITEMS_PATH = '/api/items';
 type Recorded = {
   method: string;
   path: string;
+  search: string;
   headers: Record<string, string>;
   body: string | undefined;
 };
@@ -70,6 +71,7 @@ function createBackend() {
     const request: Recorded = {
       method,
       path: url.pathname,
+      search: url.search,
       headers: (init?.headers ?? {}) as Record<string, string>,
       body: typeof init?.body === 'string' ? init.body : undefined,
     };
@@ -166,6 +168,11 @@ function setup(
       config.auth.provider === 'demo' ? null : { ...fake.authenticator, ...options.authenticator },
     imageClassifier: { label: async () => [] },
     imageColorSampler: { sampleColorName: async () => null },
+    textRecognizer: { recognize: async () => ({ text: '' }) },
+    multipartUploadFiles: {
+      prepare: async () => ({ appendTo() {}, async remove() {} }),
+      fromUri: async () => ({ appendTo() {}, async remove() {} }),
+    },
     fetch: backend.fetch,
     clock,
     sleep: recording.sleep,
@@ -265,6 +272,11 @@ describe('signing in', () => {
         deviceAuthenticator: null,
         imageClassifier: { label: async () => [] },
         imageColorSampler: { sampleColorName: async () => null },
+        textRecognizer: { recognize: async () => ({ text: '' }) },
+        multipartUploadFiles: {
+          prepare: async () => ({ appendTo() {}, async remove() {} }),
+          fromUri: async () => ({ appendTo() {}, async remove() {} }),
+        },
       }),
     ).toThrow('No device authenticator for azure-ad sign-in');
   });
@@ -510,6 +522,230 @@ describe('privacy', () => {
     for (const secret of ['access-secret', 'refresh-secret', 'access-2', 'refresh-2']) {
       expect(log).not.toContain(secret);
     }
+  });
+});
+
+describe('shops and inventory', () => {
+  it('lists stores, remembers the chosen branch, and loads that stock', async () => {
+    const { container, backend } = setup({ config: demoConfig });
+    backend.on('GET', '/api/v1/shop/stores', () =>
+      jsonResponse({
+        stores: [
+          { id: 'store-a', name: 'Winkel A' },
+          { id: 'store-b', name: 'Winkel B' },
+        ],
+      }),
+    );
+    backend.on('GET', '/api/v1/shop/stores/store-b/items', () =>
+      jsonResponse({
+        items: [
+          {
+            id: 'item-1',
+            status: 'concept',
+            number: 1,
+            category: 'jas',
+            brand: null,
+            colour: 'blauw',
+            size: 'M',
+            priceCents: 1500,
+            location: 'A1',
+            photoUrl: null,
+            createdAt: '2026-11-20T10:00:00.000Z',
+          },
+        ],
+        page: { limit: 40, offset: 0, total: 1, hasMore: false },
+      }),
+    );
+
+    await container.start();
+    expect((await container.authService.signIn()).ok).toBe(true);
+
+    const stores = await container.shopsApi.list();
+    expect(stores.stores.map((store) => store.id)).toEqual(['store-a', 'store-b']);
+    expect(backend.callsTo('GET', '/api/v1/shop/stores')[0]?.headers.Authorization).toBe(
+      'Bearer demo-access-1',
+    );
+
+    await container.selectedStore.choose('store-b');
+    expect(container.selectedStore.store.getState().storeId).toBe('store-b');
+
+    const stock = await container.inventoryApi.list('store-b');
+    expect(stock.items).toHaveLength(1);
+    expect(stock.items[0]?.status).toBe('concept');
+
+    backend.on('GET', '/api/v1/shop/stores/store-b/items/item-1', () =>
+      jsonResponse({
+        id: 'item-1',
+        status: 'concept',
+        number: 1,
+        source: 'handmatig',
+        category: 'jas',
+        doelgroep: 'dames',
+        size: 'M',
+        colour: 'blauw',
+        brand: null,
+        description: null,
+        priceCents: 1500,
+        location: 'A1',
+        sport: false,
+        typeKeywords: [],
+        photos: { main: null, extra: [], label: null },
+        createdAt: '2026-11-20T10:00:00.000Z',
+        editable: true,
+        priceLocked: false,
+      }),
+    );
+    backend.on('PATCH', '/api/v1/shop/stores/store-b/items/item-1', () =>
+      jsonResponse({
+        id: 'item-1',
+        status: 'concept',
+        number: 1,
+        source: 'handmatig',
+        category: 'jas',
+        doelgroep: 'dames',
+        size: 'M',
+        colour: 'blauw',
+        brand: 'Remi',
+        description: null,
+        priceCents: 1500,
+        location: 'A1',
+        sport: false,
+        typeKeywords: [],
+        photos: { main: null, extra: [], label: null },
+        createdAt: '2026-11-20T10:00:00.000Z',
+        editable: true,
+        priceLocked: false,
+      }),
+    );
+
+    const detail = await container.itemDetailApi.get('store-b', 'item-1');
+    expect(detail.editable).toBe(true);
+    const saved = await container.itemDetailApi.update('store-b', 'item-1', { brand: 'Remi' });
+    expect(saved.brand).toBe('Remi');
+    expect(
+      backend.callsTo('PATCH', '/api/v1/shop/stores/store-b/items/item-1')[0]?.headers
+        .Authorization,
+    ).toBe('Bearer demo-access-1');
+
+    await container.authService.signOut();
+    expect(container.selectedStore.store.getState().storeId).toBeNull();
+  });
+
+  it('loads facets and sends search plus repeated filter params on the list', async () => {
+    const { container, backend } = setup({ config: demoConfig });
+    backend.on('GET', '/api/v1/shop/stores/store-b/items/filters', () =>
+      jsonResponse({
+        sizes: [{ value: 'M', label: 'M', count: 2 }],
+        colours: [{ value: 'zwart', label: 'zwart', count: 1 }],
+        categories: [{ value: 'trui', label: 'trui', count: 3 }],
+      }),
+    );
+    backend.on('GET', '/api/v1/shop/stores/store-b/items', () =>
+      jsonResponse({ items: [], page: { limit: 40, offset: 0, total: 0, hasMore: false } }),
+    );
+
+    await container.start();
+    expect((await container.authService.signIn()).ok).toBe(true);
+
+    const facets = await container.inventoryApi.filters('store-b', 'nl');
+    expect(facets.sizes[0]?.value).toBe('M');
+    expect(backend.callsTo('GET', '/api/v1/shop/stores/store-b/items/filters')[0]?.search).toBe(
+      '?locale=nl',
+    );
+
+    await container.inventoryApi.list('store-b', {
+      search: 'jas',
+      sizes: ['M', 'L'],
+      colours: ['zwart'],
+      limit: 40,
+      offset: 0,
+    });
+    expect(backend.callsTo('GET', '/api/v1/shop/stores/store-b/items').at(-1)?.search).toBe(
+      '?search=jas&size=M&size=L&colour=zwart&limit=40&offset=0',
+    );
+  });
+
+  it('queues a scan locally and sends create plus photos when the outbox runs', async () => {
+    const { container, backend, keyValueStore } = setup({ config: demoConfig });
+    backend.on('POST', '/api/v1/shop/stores/store-b/items', () =>
+      jsonResponse({ itemId: 'item-new', created: true }, { status: 201 }),
+    );
+    backend.on('POST', '/api/v1/shop/stores/store-b/items/item-new/photos', () =>
+      jsonResponse({
+        itemId: 'item-new',
+        role: 'main',
+        stored: true,
+        photoStatus: 'wachtend',
+      }),
+    );
+
+    await container.start();
+    expect((await container.authService.signIn()).ok).toBe(true);
+
+    await container.submission.enqueue({
+      storeId: 'store-b',
+      clientKey: 'scan-container-1',
+      photos: [{ uri: 'file://main.jpg', role: 'overview' }],
+      result: {
+        category: { kind: 'known', category: 'jas', score: 0.9 },
+        colors: ['zwart'],
+        subtype: null,
+        pattern: { kind: 'unknown' },
+        labels: [],
+        uncertainFields: [],
+      },
+      listing: {
+        brand: 'WE',
+        price: '',
+        description: '',
+        category: 'jas',
+        subcategory: '',
+        color: 'zwart',
+        audience: '',
+        size: '',
+        shopSpot: '',
+        number: '',
+      },
+    });
+    expect(keyValueStore.dump()['submission.outbox']).toContain('scan-container-1');
+    // Direct flush: other timers (session refresh) may sit ahead of the 0-delay one.
+    await container.submission.flush();
+
+    expect(backend.callsTo('POST', '/api/v1/shop/stores/store-b/items')[0]?.body).toContain(
+      'scan-container-1',
+    );
+    expect(
+      backend.callsTo('POST', '/api/v1/shop/stores/store-b/items/item-new/photos'),
+    ).toHaveLength(1);
+    expect(keyValueStore.dump()['submission.outbox']).toBe('[]');
+
+    await container.submission.enqueue({
+      storeId: 'store-b',
+      clientKey: 'scan-container-2',
+      photos: [{ uri: 'file://other.jpg', role: 'overview' }],
+      result: {
+        category: { kind: 'unknown' },
+        colors: [],
+        subtype: null,
+        pattern: { kind: 'unknown' },
+        labels: [],
+        uncertainFields: [],
+      },
+      listing: {
+        brand: '',
+        price: '',
+        description: '',
+        category: '',
+        subcategory: '',
+        color: '',
+        audience: '',
+        size: '',
+        shopSpot: '',
+        number: '',
+      },
+    });
+    await container.authService.signOut();
+    expect(keyValueStore.dump()['submission.outbox']).toBeUndefined();
   });
 });
 

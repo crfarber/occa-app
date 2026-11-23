@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Keyboard,
@@ -11,8 +12,9 @@ import {
   type KeyboardEvent,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IconButton } from './icon-button';
 import { keyboardOverlap, sheetSizeAboveKeyboard, type SheetSize } from './sheet-keyboard';
-import { colors, radius, spacing } from './theme';
+import { colors, radius, spacingX, spacingY, type } from './theme';
 
 /**
  * Top of the keyboard while this sheet is open. `undefined` until the first observation,
@@ -78,6 +80,8 @@ export function BottomSheet({
   children,
   footer,
   height,
+  showHandle = false,
+  closeIcon = false,
 }: {
   visible: boolean;
   title: string;
@@ -88,6 +92,10 @@ export function BottomSheet({
   children: ReactNode;
   footer?: ReactNode;
   height?: SheetSize;
+  /** Grey pill at the top of the panel. */
+  showHandle?: boolean;
+  /** Round icon close control instead of the text button. */
+  closeIcon?: boolean;
 }) {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -128,6 +136,7 @@ export function BottomSheet({
           edges={aboveKeyboard ? [] : ['bottom']}
         >
           <View style={fill ? styles.sheetColumn : undefined}>
+            {showHandle ? <View style={styles.handle} accessibilityElementsHidden /> : null}
             <View style={styles.sheetHeader}>
               <View style={styles.titleBlock}>
                 <Text style={styles.sheetTitle}>{title}</Text>
@@ -139,9 +148,17 @@ export function BottomSheet({
                   )
                 ) : null}
               </View>
-              <Pressable accessibilityRole="button" onPress={onClose} hitSlop={spacing.md}>
-                <Text style={styles.closeLabel}>{closeLabel}</Text>
-              </Pressable>
+              {closeIcon ? (
+                <IconButton
+                  accessibilityLabel={closeLabel}
+                  onPress={onClose}
+                  icon={<Ionicons name="close" size={20} color={colors.text} />}
+                />
+              ) : (
+                <Pressable accessibilityRole="button" onPress={onClose} hitSlop={spacingY.md}>
+                  <Text style={styles.closeLabel}>{closeLabel}</Text>
+                </Pressable>
+              )}
             </View>
             <View style={[styles.body, fill && styles.bodySized]}>{children}</View>
             {footer !== undefined ? <View style={styles.footer}>{footer}</View> : null}
@@ -158,25 +175,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopLeftRadius: radius.md,
     borderTopRightRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacingX.md,
+    paddingVertical: spacingY.sm,
     maxWidth: '100%',
     width: '100%',
   },
   sheetColumn: { flex: 1 },
   maxHeight: { maxHeight: '80%' },
+  handle: {
+    alignSelf: 'center',
+    width: spacingX.xxxl,
+    height: spacingY.xs,
+    borderRadius: radius.xxl,
+    backgroundColor: colors.border,
+    marginTop: spacingY.xs,
+  },
   sheetHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    gap: spacing.md,
+    paddingVertical: spacingY.md,
+    gap: spacingX.md,
   },
-  titleBlock: { flex: 1, gap: spacing.xs },
-  sheetTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  sheetSubtitle: { color: colors.textMuted, fontSize: 13, lineHeight: 18 },
-  closeLabel: { color: colors.textMuted, fontSize: 16, fontWeight: '600', marginTop: 2 },
+  titleBlock: { flex: 1, gap: spacingY.xs },
+  sheetTitle: { ...type.header, color: colors.text },
+  sheetSubtitle: { ...type.bodySm, color: colors.textMuted },
+  closeLabel: { ...type.labelMd, color: colors.textMuted, marginTop: spacingY.xxs },
   body: { flexShrink: 1, minHeight: 0 },
   bodySized: { flex: 1, minHeight: 0 },
-  footer: { paddingVertical: spacing.md, gap: spacing.sm },
+  footer: { paddingVertical: spacingY.md, gap: spacingY.sm },
 });

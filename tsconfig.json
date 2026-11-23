@@ -17,6 +17,7 @@
   },
   "include": [
     "src",
+    ".storybook",
     "assets",
     "vitest.config.mts",
     "app.config.ts",

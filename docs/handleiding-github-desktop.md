@@ -36,7 +36,7 @@ bij GitHub.
 ## 3. De Occa-map op je Mac zetten (clonen)
 
 1. In GitHub Desktop: **File → Clone repository…**
-   (of het scherm *Let’s get started* → **Clone a repository from the Internet**).
+   (of het scherm _Let’s get started_ → **Clone a repository from the Internet**).
 2. Tab **GitHub.com**: zoek de Occa-repo, of plak de URL die je van het team kreeg
    (eindigt vaak op `.git`).
 3. Bij **Local path**: kies een duidelijke plek, bijvoorbeeld
@@ -64,12 +64,12 @@ claude
 
 ## 5. Wat je later vaak doet in GitHub Desktop
 
-| Actie | Kort |
-| ----- | ---- |
-| Wijzigingen zien | Tab **Changes**: welke bestanden je (of Buddy) hebt aangepast |
-| Opslaan in Git (commit) | Vul een korte uitleg in, klik **Commit to …** — doe dit alleen als je dat zo wilt |
-| Delen met het team (push) | **Push origin** — stuurt jouw commits naar GitHub |
-| Nieuwste code ophalen (pull) | **Fetch origin** / **Pull origin** — haalt updates van anderen op |
+| Actie                        | Kort                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| Wijzigingen zien             | Tab **Changes**: welke bestanden je (of Buddy) hebt aangepast                     |
+| Opslaan in Git (commit)      | Vul een korte uitleg in, klik **Commit to …** — doe dit alleen als je dat zo wilt |
+| Delen met het team (push)    | **Push origin** — stuurt jouw commits naar GitHub                                 |
+| Nieuwste code ophalen (pull) | **Fetch origin** / **Pull origin** — haalt updates van anderen op                 |
 
 Twijfel je over commit of push: vraag het team, of laat Buddy eerst alleen de
 specificatie maken (**Alleen bewaren**).
@@ -78,11 +78,11 @@ specificatie maken (**Alleen bewaren**).
 
 ## Problemen
 
-| Probleem | Wat te doen |
-| -------- | ----------- |
-| Repo niet zichtbaar bij Clone | Geen toegang: vraag het team om je GitHub-account toe te voegen |
-| “Git not found” of installatiefout | Herstart GitHub Desktop; anders opnieuw installeren vanaf desktop.github.com |
-| Claude vindt `/buddy` niet | Controleer dat je de map `occa` zelf hebt geopend (de map met `README.md` en `.claude`) |
-| Verkeerde map geclonet | In Finder de map zoeken; in Claude Code opnieuw die map kiezen |
+| Probleem                           | Wat te doen                                                                             |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| Repo niet zichtbaar bij Clone      | Geen toegang: vraag het team om je GitHub-account toe te voegen                         |
+| “Git not found” of installatiefout | Herstart GitHub Desktop; anders opnieuw installeren vanaf desktop.github.com            |
+| Claude vindt `/buddy` niet         | Controleer dat je de map `occa` zelf hebt geopend (de map met `README.md` en `.claude`) |
+| Verkeerde map geclonet             | In Finder de map zoeken; in Claude Code opnieuw die map kiezen                          |
 
 Meer over de app zelf installeren: [handleiding-starten.md](handleiding-starten.md).

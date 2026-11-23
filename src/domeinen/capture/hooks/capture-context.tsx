@@ -3,11 +3,14 @@ import { useStore } from 'zustand';
 import type { ListingDraft } from '../domain/listing';
 import type { ImageClassifier } from '../service/image-classifier';
 import type { ImageColorSampler } from '../service/image-color-sampler';
+import type { CaptureDraft } from '../domain/capture-draft';
+import type { TextRecognizer } from '../service/text-recognizer';
 import type { ScanState, ScanStore, ScannedItem } from '../store/scan-store';
 
 export type CaptureContextValue = {
   imageClassifier: ImageClassifier;
   imageColorSampler: ImageColorSampler;
+  textRecognizer: TextRecognizer;
   scanStore: ScanStore;
 };
 
@@ -38,6 +41,27 @@ export function useImageClassifier(): ImageClassifier {
 
 export function useImageColorSampler(): ImageColorSampler {
   return useCaptureContext().imageColorSampler;
+}
+
+export function useTextRecognizer(): TextRecognizer {
+  return useCaptureContext().textRecognizer;
+}
+
+export function useCaptureDraft(): CaptureDraft {
+  const { scanStore } = useCaptureContext();
+  return useStore(scanStore.store, (state: ScanState) => state.draft);
+}
+
+export function useScanStoreActions(): Pick<
+  ScanStore,
+  'addDraftPhoto' | 'setDraftLabel' | 'clearDraft'
+> {
+  const { scanStore } = useCaptureContext();
+  return {
+    addDraftPhoto: scanStore.addDraftPhoto,
+    setDraftLabel: scanStore.setDraftLabel,
+    clearDraft: scanStore.clearDraft,
+  };
 }
 
 /** Scans recorded this session, newest first. */

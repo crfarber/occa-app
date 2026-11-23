@@ -8,7 +8,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
-import { colors, radius, spacing } from './theme';
+import { colors, radius, size, spacingX, spacingY, type } from './theme';
 
 type TextFieldProps = Pick<
   TextInputProps,
@@ -25,6 +25,10 @@ type TextFieldProps = Pick<
   | 'onFocus'
   | 'onBlur'
   | 'autoCapitalize'
+  | 'secureTextEntry'
+  | 'returnKeyType'
+  | 'onSubmitEditing'
+  | 'submitBehavior'
 > & {
   label?: string;
   error?: string | null;
@@ -62,19 +66,19 @@ export function TextField({
 }
 
 const styles = StyleSheet.create({
-  container: { gap: spacing.xs },
-  label: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  container: { gap: spacingY.xs },
+  label: { ...type.label, color: colors.text },
   input: {
-    minHeight: 48,
+    minHeight: size.touchMin,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    fontSize: 16,
+    paddingHorizontal: spacingX.md,
+    ...type.body,
     color: colors.text,
     backgroundColor: colors.background,
   },
-  multiline: { minHeight: 96, paddingTop: spacing.sm, textAlignVertical: 'top' },
+  multiline: { minHeight: 96, paddingTop: spacingY.sm, textAlignVertical: 'top' },
   inputError: { borderColor: colors.danger },
-  error: { color: colors.danger, fontSize: 14 },
+  error: { ...type.bodySm, color: colors.danger },
 });

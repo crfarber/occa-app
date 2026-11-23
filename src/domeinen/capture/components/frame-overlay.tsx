@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radius, spacing, type } from '@/shared/ui/theme';
+import { colors, radius, spacingX, spacingY, type } from '@/shared/ui/theme';
 import type { Rect } from '../domain/frame-crop';
 
 type FrameOverlayProps = {
@@ -33,7 +33,7 @@ export function FrameOverlay({ frame, label, style }: FrameOverlayProps) {
   );
 }
 
-const CORNER = 22;
+const CORNER = 20;
 const STROKE = 3;
 
 const styles = StyleSheet.create({
@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
   label: {
     ...type.small,
     color: colors.onInverseSurface,
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    marginTop: spacingY.sm,
+    paddingHorizontal: spacingX.sm,
+    paddingVertical: spacingY.xs,
     backgroundColor: 'rgba(0,0,0,0.45)',
     overflow: 'hidden',
     borderRadius: radius.sm,

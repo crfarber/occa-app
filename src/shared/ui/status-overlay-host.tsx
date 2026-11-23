@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StatusOverlay, StatusView } from '@/shared/feedback/status-overlay';
 import { Button } from './button';
-import { colors, spacing } from './theme';
+import { colors, spacingX, spacingY, type } from './theme';
 
 const StatusOverlayContext = createContext<StatusOverlay | null>(null);
 
@@ -79,8 +79,8 @@ export function StatusOverlayHost() {
         styles.host,
         {
           backgroundColor: background,
-          paddingTop: insets.top + spacing.lg,
-          paddingBottom: insets.bottom + spacing.lg,
+          paddingTop: insets.top + spacingY.lg,
+          paddingBottom: insets.bottom + spacingY.lg,
         },
       ]}
       onLayout={() => {
@@ -146,21 +146,20 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     zIndex: 20000,
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacingX.lg,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
+    gap: spacingY.md,
   },
   message: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...type.header,
     textAlign: 'center',
   },
   messageOnDark: { color: colors.background },
   messageOnWarning: { color: colors.onWarning },
-  slow: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
-  actions: { gap: spacing.sm },
+  slow: { ...type.bodySm, textAlign: 'center' },
+  actions: { gap: spacingY.sm },
 });

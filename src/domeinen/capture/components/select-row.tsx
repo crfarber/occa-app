@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, spacing, type } from '@/shared/ui/theme';
+import { colors, radius, spacingX, spacingY, type } from '@/shared/ui/theme';
 
 type SelectRowProps = {
   label: string;
@@ -35,16 +35,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    gap: spacingX.sm,
+    paddingVertical: spacingY.md,
+    paddingHorizontal: spacingX.md,
     backgroundColor: colors.background,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
   pressed: { opacity: 0.7 },
-  text: { flex: 1, gap: spacing.xs },
+  text: { flex: 1, gap: spacingY.xs },
   label: { ...type.small, color: colors.textMuted },
   value: { ...type.body, color: colors.text },
   placeholder: { color: colors.textMuted },

@@ -44,6 +44,24 @@ describe('buildUrl', () => {
       'https://api.test/things?a%26b=1%3D2',
     );
   });
+
+  it('repeats keys for string arrays', () => {
+    expect(buildUrl('https://api.test', '/items', { size: ['M', 'L'], colour: ['zwart'] })).toBe(
+      'https://api.test/items?size=M&size=L&colour=zwart',
+    );
+  });
+
+  it('encodes commas inside array values', () => {
+    expect(buildUrl('https://api.test', '/items', { size: ['38,5'] })).toBe(
+      'https://api.test/items?size=38%2C5',
+    );
+  });
+
+  it('skips empty arrays', () => {
+    expect(buildUrl('https://api.test', '/items', { size: [], search: 'jas' })).toBe(
+      'https://api.test/items?search=jas',
+    );
+  });
 });
 
 describe('encodeForm', () => {

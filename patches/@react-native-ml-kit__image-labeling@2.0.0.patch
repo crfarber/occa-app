@@ -1,0 +1,33 @@
+diff --git a/ios/ImageLabeling.m b/ios/ImageLabeling.m
+index 3077d7fb3c361bbc7c3b6a21de0e089029a3954c..1218ba17ddbcffa1c5985bd3e8b35a1abd88e755 100644
+--- a/ios/ImageLabeling.m
++++ b/ios/ImageLabeling.m
+@@ -1,8 +1,10 @@
+ #import "ImageLabeling.h"
+ 
++#if !TARGET_OS_SIMULATOR
+ @import MLKitVision.MLKVisionImage;
+ @import MLKitImageLabeling.MLKImageLabelerOptions;
+ @import MLKitImageLabelingCommon;
++#endif
+ 
+ @implementation ImageLabeling
+ 
+@@ -12,6 +14,9 @@ RCT_EXPORT_METHOD(label: (nonnull NSString*)url
+                   resolver:(RCTPromiseResolveBlock)resolve
+                   rejecter:(RCTPromiseRejectBlock)reject)
+ {
++#if TARGET_OS_SIMULATOR
++    reject(@"Image Labeling", @"ML Kit image labeling is not available on the iOS Simulator. Use a physical device.", nil);
++#else
+     NSURL *_url = [NSURL URLWithString:url];
+     NSData *imageData = [NSData dataWithContentsOfURL:_url];
+     UIImage *image = [UIImage imageWithData:imageData];
+@@ -41,6 +46,7 @@ RCT_EXPORT_METHOD(label: (nonnull NSString*)url
+         
+         resolve(result);
+     }];
++#endif
+ }
+ 
+ @end

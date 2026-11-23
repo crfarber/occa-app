@@ -4,6 +4,8 @@ export type { AuthMethod, Session } from './domain/session';
 export { createAuthService, createRefresher } from './service/auth-service';
 export type { AuthService, Authenticator } from './service/auth-service';
 export { createDemoAuthenticator, DEMO_TOKEN_LIFETIME_MS } from './service/demo-authenticator';
+export { createSupabasePasswordAuthenticator } from './service/supabase-password-authenticator';
+export type { SignInCredentials } from './service/auth-service';
 export { createSessionLifecycle } from './service/session-lifecycle';
 export type { Scheduler, SessionLifecycle } from './service/session-lifecycle';
 export { createSessionRepository, SESSION_KEY } from './service/session-repository';

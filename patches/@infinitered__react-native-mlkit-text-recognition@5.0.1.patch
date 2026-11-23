@@ -1,0 +1,60 @@
+diff --git a/ios/RNMLKitTextRecognitionModule.swift b/ios/RNMLKitTextRecognitionModule.swift
+index 0357141d6a10f9e2dc2d174d1cf82384d5cc4f29..ec70ba198945185cbb491be3c0e37360ae240b93 100644
+--- a/ios/RNMLKitTextRecognitionModule.swift
++++ b/ios/RNMLKitTextRecognitionModule.swift
+@@ -1,7 +1,9 @@
+ import ExpoModulesCore
++#if !targetEnvironment(simulator)
+ import MLKitCommon
+ import MLKitTextRecognition
+ import RNMLKitCore
++#endif
+ 
+ public class RNMLKitTextRecognitionModule: Module {
+     let ERROR_DOMAIN: String = "red.infinite.RNMLKit.RNMLKitTextRecognitionModuleErrorDomain"
+@@ -10,6 +12,15 @@ public class RNMLKitTextRecognitionModule: Module {
+     Name("RNMLKitTextRecognition")
+     
+     AsyncFunction("recognizeText") { (imagePath: String, promise: Promise) in
++      #if targetEnvironment(simulator)
++      promise.reject(
++          NSError(
++              domain: ERROR_DOMAIN,
++              code: 2,
++              userInfo: [NSLocalizedDescriptionKey: "ML Kit text recognition is not available on the iOS Simulator. Use a physical device."]
++          )
++      )
++      #else
+       let logger = Logger(logHandlers: [createOSLogHandler(category: Logger.EXPO_LOG_CATEGORY)])
+       logger.info("RNMLKit", "recognize text: Recognizing text from image: \(imagePath) ")
+       
+@@ -29,6 +40,7 @@ public class RNMLKitTextRecognitionModule: Module {
+           )
+         }
+       }
++      #endif
+     }
+   }
+ }
+diff --git a/ios/RNMLKitTextRecord.swift b/ios/RNMLKitTextRecord.swift
+index 7672854c2280694a5ad258a515d8f8cc76955ad9..2486503ca0dffd77dddbbfe23f53e30d7ede386b 100644
+--- a/ios/RNMLKitTextRecord.swift
++++ b/ios/RNMLKitTextRecord.swift
+@@ -1,3 +1,4 @@
++#if !targetEnvironment(simulator)
+ import ExpoModulesCore
+ import MLKitCommon
+ import MLKitTextRecognition
+@@ -70,9 +71,11 @@ func mapTextBlockToRecord(_ textBlock: TextBlock) -> BlockRecord {
+     )
+ }
+ 
+-func mapTextToRecord(_ text: Text) -> TextRecord {
++// Explicit module: ExpoModulesCore re-exports SwiftUI, which also has `Text`.
++func mapTextToRecord(_ text: MLKitTextRecognition.Text) -> TextRecord {
+     return TextRecord(
+         text: text.text,
+         blocks: text.blocks.map(mapTextBlockToRecord)
+     )
+ }
++#endif

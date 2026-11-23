@@ -61,3 +61,6 @@ training/**/*.jpg
 training/**/*.jpeg
 training/**/*.png
 training/**/*.webp
+
+*storybook.log
+storybook-static
