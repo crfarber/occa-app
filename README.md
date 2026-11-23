@@ -1,3 +1,5 @@
+> **Verhuisd.** Deze app staat sinds 23 november 2026 in de monorepo `HelloRemiNL/remi-platform`, als `apps/partner-app`. Deze repo is gearchiveerd en wordt niet meer bijgewerkt. De laatste stand die is overgezet, staat op branch `pre-commit` (`0907271`).
+
 # Occa
 
 Mobiele app voor vintage kledingwinkels: scannen, on-device herkenning en lokale productdrafts.
